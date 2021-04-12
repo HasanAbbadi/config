@@ -1,0 +1,7 @@
+{
+	"setLimit": true,
+	"limit": 5,
+	"onlyMatches": false,
+	"showScore": true,
+	"showYear": true
+}
