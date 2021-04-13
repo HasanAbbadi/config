@@ -8,7 +8,7 @@ super + Return
 
 # launch terminal in floating mode
 super + alt + Return
-
+        bspc rule -a \* -o state=floating && xfce4-terminal
 # program launcher
 super + @space
         dmenuwal
@@ -24,6 +24,9 @@ super + y
 # music 
 super + shift + m
         xfce4-terminal -e "fish -c tuner"
+# go to directory
+super + i
+        Exec= xfce4-terminal -x fish -c "goto; exec fish"
 # change keyboard layout
 alt + @space
         {setxkbmap ar,setxkbmap us}

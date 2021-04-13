@@ -18,3 +18,8 @@ alias jpnen='trans jpn:en "$argv"'
 # polybar aliases
 alias lapo='bash ~/.config/polybar/launch.sh'
 alias pywal='bash ~/.config/polybar/shapes/scripts/pywal.sh'
+
+# cd aliases
+alias .='cd ..'
+alias ..='cd .. && cd ..'
+alias goto='cd (find ~/ -type d | fzf --border=rounded --layout=reverse --prompt "<3)" --color=dark --preview "ls ~/")'
