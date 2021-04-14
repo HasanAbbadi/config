@@ -2,10 +2,13 @@
 # &   # Run the process in the background.
 # ( ) # Hide shell job control messages.
 # Not supported in the "fish" shell.
-cat ~/.cache/wal/sequences &
+#cat ~/.cache/wal/sequences &
 
 # Alternative (blocks terminal for 0-3ms)
-cat ~/.cache/wal/sequences
+#cat ~/.cache/wal/sequences
+function fish_mode_prompt; end
+funcsave fish_mode_prompt
+set fish_greeting
 
 # Aliases
 
@@ -23,3 +26,15 @@ alias pywal='bash ~/.config/polybar/shapes/scripts/pywal.sh'
 alias .='cd ..'
 alias ..='cd .. && cd ..'
 alias goto='cd (find ~/ -type d | fzf --border=rounded --layout=reverse --prompt "<3)" --color=dark --preview "ls ~/")'
+
+# mpv aliases
+alias mpv='mpv --hwdec=vaapi'
+alias mpvimg='mpv --image-display-duration=inf'
+
+# cp aliases
+alias cpconf='cp $1 ~/rubbish/config/'
+
+# git aliases
+alias gc='git clone'
+alias gp='git push'
+alias gcm='git commit -m "$argv"'
