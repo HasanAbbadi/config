@@ -1,0 +1,9 @@
+#!/bin/sh
+
+myConfig=$(find ~/.config -type f | sed 's+/home/hasan/.config/+ +g'| fzf --border=rounded --layout=reverse --prompt='<3) ' --color=light --preview='ls ~/.config' | sed 's+ +/home/hasan/.config/+g')
+
+if [ -z $myConfig ]; then
+	exit
+fi
+
+vim $myConfig

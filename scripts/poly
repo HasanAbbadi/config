@@ -1,0 +1,3 @@
+#!/bin/sh
+
+bash ~/.config/polybar/launch.sh --shapes

@@ -1,0 +1,12 @@
+#!/bin/sh
+
+
+while true
+do
+myWall=$(find $1 | shuf | head -n 1) 
+#feh --bg-fill $myWall
+killall polybar
+bash ~/.config/polybar/shapes/scripts/pywal.sh  "$myWall"
+bash ~/.config/polybar/launch.sh --shapes
+sleep 10m
+done
