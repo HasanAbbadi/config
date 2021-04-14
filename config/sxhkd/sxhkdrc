@@ -4,11 +4,11 @@
 
 # terminal emulator
 super + Return
-        xfce4-terminal 
+        st
 
 # launch terminal in floating mode
 super + alt + Return
-        bspc rule -a \* -o state=floating && xfce4-terminal
+        bspc rule -a \* -o state=floating && st
 # program launcher
 super + @space
         dmenuwal
@@ -20,13 +20,13 @@ super + p
 
 # search files and edit (vim)
 super + y
-        xfce4-terminal -e "fish -c mc"
+        st -e bash -c 'mc; bash'
 # music 
 super + shift + m
-        xfce4-terminal -e "fish -c tuner"
+        st -e tuner
 # go to directory
 super + i
-        Exec= xfce4-terminal -x fish -c "goto; exec fish"
+        Exec= st -e fish -c "goto; exec fish"
 # change keyboard layout
 alt + @space
         {setxkbmap ar,setxkbmap us}
@@ -38,7 +38,7 @@ super + alt + w
         firefox
 # make sxhkd reload its configuration files:
 super + Escape
-        fish -c "killall sxhkd && sxhkd"
+        bash -c "killall sxhkd && sxhkd"
 #pkill -USR1 -x sxhkd
 
 #
