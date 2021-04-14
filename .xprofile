@@ -1,0 +1,6 @@
+setxkbmap -option "caps:swapescape" &
+wal -R &
+poly &
+lxappearance &
+killall lxappearance &
+xautolock -time 5 -locker "systemctl suspend" -detectsleep &
