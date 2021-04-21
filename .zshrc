@@ -1,10 +1,46 @@
+# I use arch btw
+pfetch && date
 # Hasan's config of the zsh shell
 #
+alias v='vim'
+alias sps='sudo pacman -S'
+alias ls='lsd'
+alias chlay='bsp-layout set'
+alias downman="mangadl "$1" -r -d ~/manga/"
+# Aliases
 
-autoload -U colors && colors
+# [Translate] aliases
+alias enar='trans en:ar "$argv"'
+alias aren='trans ar:en "$argv"'
+alias enjpn='trans en:jpn "$argv"'
+alias jpnen='trans jpn:en "$argv"'
+
+# polybar aliases
+alias lapo='bash ~/.config/polybar/launch.sh'
+alias pywal='bash ~/.config/polybar/shapes/scripts/pywal.sh'
+
+# cd aliases
+alias .='cd ..'
+alias ..='cd .. && cd ..'
+alias goto='cd $(find ~/ -type d | fzf --border=rounded --layout=reverse --prompt "<3)" --color=dark --preview "ls ~/")'
+
+# mpv aliases
+alias mpv='mpv --hwdec=vaapi'
+alias mpvimg='mpv --image-display-duration=inf'
+
+# cp aliases
+alias cpconf='cp $1 ~/rubbish/config/'
+
+# git aliases
+alias gc='git clone'
+alias gp='git push'
+alias gcm='git commit -m'
+
+####################################################################
+
 PS1="%~%\ ⟩%b "
 
-export HISTFILE=~/.cache/zsh/.zsh_history
+export HISTFILE=~/.cache/zsh/history
 export HISTSIZE=10000
 export SAVEHIST=10000
 setopt INC_APPEND_HISTORY
@@ -60,7 +96,6 @@ preexec() { echo -ne '\e[5 q' ;} # Use beam shape cursor for each new prompt.
                                          }
                                          bindkey -s '^o' 'lfcd\n'
 
-alias ls='ls --color=auto'
 
 # Edit line in vim with ctrl-e:
  autoload edit-command-line; zle -N edit-command-line
@@ -69,6 +104,8 @@ alias ls='ls --color=auto'
  # Load zsh-suggestions
  source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh
 
+ # Load colored man pages
+ source ~/.zsh/colored-man-pages/colored-man-pages.plugin.zsh
  # Load zsh-syntax-highlighting; should be last.
   source /usr/share/zsh/plugins/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh 2>/dev/null
  
@@ -77,3 +114,5 @@ HISTFILE=~/.cache/zsh/.zsh_history
 HISTSIZE=10000
 SAVEHIST=10000
 # End of lines configured by zsh-newuser-install
+
+PATH="/home/hasan/.mangadl-bash:${PATH}"
