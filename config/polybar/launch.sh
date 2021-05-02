@@ -70,6 +70,10 @@ elif [[ "$1" == "--pwidgets" ]]; then
 elif [[ "$1" == "--panels" ]]; then
 	style="panels"
 	launch_bar
+    
+elif [[ "$1" == "--personal" ]]; then
+    style="personal"
+    launch_bar
 
 else
 	cat <<- EOF
