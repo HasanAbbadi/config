@@ -3,8 +3,14 @@
 -- Welcome to my config
 i have most of my files here public to everyone.
 
+Distro: ArchLinux
+WM: BSPWM
+Shell: zsh
+bar: polybar
+Terminal: termite
+
 # Current setup
-![Screenshot from 2021-05-04 15-30-49](https://user-images.githubusercontent.com/78548167/117003842-091cac00-acee-11eb-9332-c49092e5f7dc.png)
+![Screenshot from 2021-05-04 15-34-51](https://user-images.githubusercontent.com/78548167/117004249-88aa7b00-acee-11eb-843f-6463a3a587bc.png)
 
 
 # Old Setup
