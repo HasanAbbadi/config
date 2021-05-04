@@ -1,7 +1,7 @@
 # config
 
--- Welcome to my config
-i have most of my files here public to everyone.
+Welcome to my config
+where I have my files here public to everyone.
 
 - Distro: ArchLinux
 - WM: BSPWM
