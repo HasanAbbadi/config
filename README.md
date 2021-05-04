@@ -3,7 +3,10 @@
 -- Welcome to my config
 i have most of my files here public to everyone.
 
+# Current setup
+![Screenshot from 2021-05-04 15-30-49](https://user-images.githubusercontent.com/78548167/117003842-091cac00-acee-11eb-9332-c49092e5f7dc.png)
 
 
+# Old Setup
 ![Screenshot from 2021-04-14 14-38-16](https://user-images.githubusercontent.com/78548167/114704392-38fc1380-9d2f-11eb-8b57-e66fe3537ac1.png)
 
