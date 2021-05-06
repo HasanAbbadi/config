@@ -45,4 +45,3 @@ while [ "$ANSWER" == "y" ]; do
       echo -e "$(teput setaf 4)Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$x"
       sleep 2s
 done
-    
