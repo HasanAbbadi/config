@@ -1,0 +1,48 @@
+#!/bin/sh
+# _   _    _    ____    _    _   _ 
+#| | | |  / \  / ___|  / \  | \ | |
+#| |_| | / _ \ \___ \ / _ \ |  \| |
+#|  _  |/ ___ \ ___) / ___ \| |\  |
+#|_| |_/_/   \_\____/_/   \_\_| \_|
+#                                  
+
+if [[ $1 == "--list" ]]; then
+    cat /tmp/watchlist.txt && exit
+fi
+
+anime-cli setLimit true 2 && anime-cli $1 && tuxi "$1 synopsis"
+
+watchlist=$(grep $1 /tmp/watchlist.txt)
+currentep=$(grep $1 /tmp/watchlist.txt | awk {'print $2'})
+
+echo -e "$(tput setaf 4)do you wanna watch this anime? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
+read ANSWER
+if [ "$ANSWER" == "y" ]; then
+    if [[ $watchlist != "$1 $currentep" ]]; then
+     echo "$1 0" >> /tmp/watchlist.txt
+     echo "Added to Watch List"
+     sleep 2s
+ else
+     echo "Already In Watch List"
+     sleep 2s
+     fi
+    watchnext=`expr $currentep + 1`
+    echo -e "$(tput setaf 4) Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$watchnext"
+    anime dl $@ -e $watchnext -c 1 --play "mpvquiet" &&
+    sleep 2s &&
+    sed -i "s|$1\ $currentep|$1\ $watchnext|g" /tmp/watchlist.txt 
+    else
+        echo "How Unfortunate!"
+break
+fi
+
+echo -e "$(tput setaf 4)Do You Want To Watch The Next Episode? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n"
+read ANSWER
+while [ "$ANSWER" == "y" ]; do
+    anime dl $@ -e $watchnext -c 1 --play "mpvquiet" &&
+    sleep 2s
+    sed -i "s|$1\ $currentep|$1\ $watchnext|g" /tmp/watchlist.txt 
+      echo -e "$(teput setaf 4)Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$x"
+      sleep 2s
+done
+    
