@@ -6,20 +6,70 @@
 #|_| |_/_/   \_\____/_/   \_\_| \_|
 #                                  
 
-if [[ $1 == "--list" ]]; then
-    cat /tmp/watchlist.txt && exit
+# [ flags ]
+
+if [[ $1 == "--list" ]] || [[ $1 == "-l" ]]; then
+    cat ~/.config/aninfo/watchlist && exit
 fi
 
-anime-cli setLimit true 2 && anime-cli $1 && tuxi "$1 synopsis"
+if [[ $1 == "--add" ]] || [[ $1 == "-a" ]]; then
+    if [[ $2 == '' ]]; then 
+        echo "what anime ?" && exit
+        elif [[ $3 == '' ]]; then
+           echo "$2 0" >> ~/.config/aninfo/watchlist 
+           echo "Added $2 as a new anime" && exit
+    else
+        echo "$2 $3" >> ~/.config/aninfo/watchlist 
+        echo "Added $2, ep num. $3."&& exit
+    fi
+fi
 
-watchlist=$(grep $1 /tmp/watchlist.txt)
-currentep=$(grep $1 /tmp/watchlist.txt | awk {'print $2'})
+if [[ $1 == "--remove" ]] || [[ $1 == "-r" ]]; then
+    sed -i "/$2/d" /home/hasan/.config/aninfo/watchlist
+    echo "Removed $2 from list"
+    exit
+fi
+
+if [[ -z $1 ]] || [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
+    echo 'Usage: aninfo <FLAG> [NAME]
+    ----------------------------------
+       shows your list of anime           -l || --list
+       add anime to your list             -a || --add
+       remove anime from your list        -r || --remove
+       shows this help message            -h || --help
+    ----------------------------------' 
+    exit
+fi
+    
+# [ cache the anime info ]
+
+if [[ -f ~/.config/aninfo/cache/$1 ]]; then
+cat ~/.config/aninfo/cache/"$1"
+else
+anime-cli setLimit true 2 && anime-cli "$1" >> ~/.config/aninfo/cache/"$1" && tuxi ""$1" synopsis" >> ~/.config/aninfo/cache/"$1"
+cat ~/.config/aninfo/cache/"$1"
+fi
+
+# [ make watchlist if doesn't exist ]
+
+if [[ ! -f ~/.config/aninfo/watchlist ]]; then
+touch ~/.config/aninfo/watchlist
+fi
+
+# [ values ]
+
+watchlist=$(grep "$1" ~/.config/aninfo/watchlist)
+currentep=$(grep "$1" ~/.config/aninfo/watchlist | awk {'print $2'})
+if [[ $currentep != [1-9] ]]; then
+    currentep=$(grep "$1" ~/.config/aninfo/watchlist | awk {'print $3'})
+fi
+# [ first prompt ]
 
 echo -e "$(tput setaf 4)do you wanna watch this anime? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
 read ANSWER
 if [ "$ANSWER" == "y" ]; then
     if [[ $watchlist != "$1 $currentep" ]]; then
-     echo "$1 0" >> /tmp/watchlist.txt
+     echo "$1 0" >> ~/.config/aninfo/watchlist
      echo "Added to Watch List"
      sleep 2s
  else
@@ -28,20 +78,41 @@ if [ "$ANSWER" == "y" ]; then
      fi
     watchnext=`expr $currentep + 1`
     echo -e "$(tput setaf 4) Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$watchnext"
-    anime dl $@ -e $watchnext -c 1 --play "mpvquiet" &&
-    sleep 2s &&
-    sed -i "s|$1\ $currentep|$1\ $watchnext|g" /tmp/watchlist.txt 
+    anime dl "$1" -e $watchnext -c 1 --play "mpvquiet" &&
+    sleep 1s
+  
+  # [ sed command ]
+
+    echo -e "$(tput setaf 4)Mark Episode as Watched? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
+    read ANSWER
+    if [[ $ANSWER == y ]]; then
+       sed -i "s|$1\ $currentep|$1\ $watchnext|g" /home/hasan/.config/aninfo/watchlist 
+       echo "$(tput setaf 2)Marked as watched"
     else
-        echo "How Unfortunate!"
-break
+       echo "$(tput setaf 1)Didn't Mark it as Watched"
+       exit
+    fi
+else 
+echo "How Unfortunate!" && exit
 fi
 
+# [ loop ]
+
+sleep 2s
 echo -e "$(tput setaf 4)Do You Want To Watch The Next Episode? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n"
 read ANSWER
 while [ "$ANSWER" == "y" ]; do
-    anime dl $@ -e $watchnext -c 1 --play "mpvquiet" &&
+    anime dl "$1" -e $watchnext -c 1 --play "mpvquiet" &&
+    echo -e "$(tput setaf 4)Mark Episode as Watched? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
+    read ANSWER
+    if [[ $ANSWER == y ]]; then
+       sed -i "s|$1\ $currentep|$1\ $watchnext|g" /home/hasan/.config/aninfo/watchlist 
+       echo "$(tput setaf 2)Marked as watched"
+    else
+       echo "$(tput setaf 1)Didn't Mark it as Watched"
+       exit
+    fi
     sleep 2s
-    sed -i "s|$1\ $currentep|$1\ $watchnext|g" /tmp/watchlist.txt 
       echo -e "$(teput setaf 4)Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$x"
       sleep 2s
 done
