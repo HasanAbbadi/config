@@ -26,8 +26,14 @@ fi
 
 if [[ $1 == "--remove" ]] || [[ $1 == "-r" ]]; then
     sed -i "/$2/d" /home/hasan/.config/aninfo/watchlist
+    rm ~/.config/aninfo/cache/"$2"
     echo "Removed $2 from list"
     exit
+fi
+
+if [[ $1 == "-e" ]] || [[ $1 == "--edit" ]]; then
+ vim ~/.config/aninfo/watchlist
+ exit
 fi
 
 if [[ -z $1 ]] || [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
@@ -37,6 +43,7 @@ if [[ -z $1 ]] || [[ $1 == "-h" ]] || [[ $1 == "--help" ]]; then
        add anime to your list             -a || --add
        remove anime from your list        -r || --remove
        shows this help message            -h || --help
+       edit your list with vim            -e || --edit
     ----------------------------------' 
     exit
 fi
@@ -58,10 +65,19 @@ fi
 
 # [ values ]
 
-watchlist=$(grep "$1" ~/.config/aninfo/watchlist)
-currentep=$(grep "$1" ~/.config/aninfo/watchlist | awk {'print $2'})
-if [[ $currentep != [1-9] ]]; then
-    currentep=$(grep "$1" ~/.config/aninfo/watchlist | awk {'print $3'})
+watchlist=$(grep -iF "$1" ~/.config/aninfo/watchlist)
+currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $2'})
+if [[ $currentep != [0-9] ]]; then
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $3'})
+    if [[ $currentep != [0-9] ]]; then
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $4'})
+    if [[ $currentep != [0-9] ]]; then
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $5'})
+    if [[ $currentep != [0-9] ]]; then
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $6'})
+    fi
+fi
+fi
 fi
 # [ first prompt ]
 
@@ -78,7 +94,7 @@ if [ "$ANSWER" == "y" ]; then
      fi
     watchnext=`expr $currentep + 1`
     echo -e "$(tput setaf 4) Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$watchnext"
-    anime dl "$1" -e $watchnext -c 1 --play "mpvquiet" &&
+    anime dl "$1" -e $watchnext --play "mpvquiet" &&
     sleep 1s
   
   # [ sed command ]
