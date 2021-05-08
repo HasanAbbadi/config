@@ -13,6 +13,8 @@ if [[ $1 == "--list" ]] || [[ $1 == "-l" ]]; then
 fi
 
 if [[ $1 == "--add" ]] || [[ $1 == "-a" ]]; then
+    echo "Adding Anime to Watchlist..."
+anime-cli setLimit true 2 && anime-cli "$2" >> ~/.config/aninfo/cache/"$2" && echo "Caching data..." && tuxi ""$2" synopsis" >> ~/.config/aninfo/cache/"$2"
     if [[ $2 == '' ]]; then 
         echo "what anime ?" && exit
         elif [[ $3 == '' ]]; then
@@ -50,10 +52,11 @@ fi
     
 # [ cache the anime info ]
 
-if [[ -f ~/.config/aninfo/cache/$1 ]]; then
-cat ~/.config/aninfo/cache/"$1"
+if [[ -f ~/.config/aninfo/cache/"$(echo "$1" |tr [:upper:] [:lower:])" ]]; then
+cat ~/.config/aninfo/cache/"$(echo "$1" |tr [:upper:] [:lower:])"
 else
-anime-cli setLimit true 2 && anime-cli "$1" >> ~/.config/aninfo/cache/"$1" && tuxi ""$1" synopsis" >> ~/.config/aninfo/cache/"$1"
+    echo "wait a moment..."
+anime-cli setLimit true 2 && anime-cli "$1" >> ~/.config/aninfo/cache/"$1" && echo "getting anime info..." && tuxi ""$1" synopsis" >> ~/.config/aninfo/cache/"$1"
 cat ~/.config/aninfo/cache/"$1"
 fi
 
@@ -63,7 +66,7 @@ if [[ ! -f ~/.config/aninfo/watchlist ]]; then
 touch ~/.config/aninfo/watchlist
 fi
 
-# [ values ]
+# [ variables ]
 
 watchlist=$(grep -iF "$1" ~/.config/aninfo/watchlist)
 currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $2'})
@@ -81,6 +84,7 @@ fi
 fi
 # [ first prompt ]
 
+sleep 0.5s
 echo -e "$(tput setaf 4)do you wanna watch this anime? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
 read ANSWER
 if [ "$ANSWER" == "y" ]; then
@@ -96,7 +100,7 @@ if [ "$ANSWER" == "y" ]; then
     echo -e "$(tput setaf 4) Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$watchnext"
     anime dl "$1" -e $watchnext --play "mpvquiet" &&
     sleep 1s
-  
+
   # [ sed command ]
 
     echo -e "$(tput setaf 4)Mark Episode as Watched? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
