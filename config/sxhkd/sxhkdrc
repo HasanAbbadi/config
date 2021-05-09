@@ -4,14 +4,15 @@
 
 # terminal emulator
 super + Return
-        st
+        termite
 
 # launch terminal in floating mode
 super + alt + Return
-        bspc rule -a \* -o state=floating && st
+        bspc rule -a \* -o state=floating && termite
+
 # program launcher
 super + @space
-        dmenuwal
+        rofi -show run -font "Fira Code 17"
 	#dmenu_run -fn terminus-25
 
 # google search with dmenu
@@ -20,25 +21,36 @@ super + p
 
 # search files and edit (vim)
 super + y
-        st -e bash -c 'mc; bash'
+        termite -e mc
+
 # music 
 super + shift + m
-        st -e tuner
-# go to directory
-super + i
-        Exec= st -e fish -c "goto; exec fish"
+        termite -e tuner
+
 # change keyboard layout
 alt + @space
         {setxkbmap ar,setxkbmap us}
+
 # start menu program launcher jgmenu
 super + alt + z
         jgmenu_run
+
 # default browsr
 super + alt + w
         firefox
+
+# lock the screen
+super + x
+        slock
+
+# restart polybar
+super + alt + p
+        restartbar
+
 # make sxhkd reload its configuration files:
 super + Escape
-        bash -c "killall sxhkd && sxhkd"
+        restartsxhkd
+        #bash -c "killall sxhkd && sxhkd"
 #pkill -USR1 -x sxhkd
 
 #
@@ -56,6 +68,18 @@ super + {_,shift + }w
 # alternate between the tiled and monocle layout
 super + m
 	bspc desktop -l next
+
+# change to grid layout
+super + z
+    bsp-layout set {grid,none}
+
+# change the size of the gap between windows
+super + {equal,minus}
+        {gaps more,gaps less}
+
+# change the size of the gaps between windows #2
+super + plus
+        {gaps default, bspc config window_gap 0}
 
 # send the newest marked node to the newest preselected node
 super + y
