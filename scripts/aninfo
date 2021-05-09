@@ -101,12 +101,13 @@ if [ "$ANSWER" == "y" ]; then
     anime dl "$1" -e $watchnext --play "mpvquiet" &&
     sleep 1s
 
-  # [ sed command ]
+# [ sed command ]
 
     echo -e "$(tput setaf 4)Mark Episode as Watched? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
     read ANSWER
     if [[ $ANSWER == y ]]; then
-       sed -i "s|$1\ $currentep|$1\ $watchnext|g" /home/hasan/.config/aninfo/watchlist 
+            watchnext=`expr $currentep + 1`
+       sed -i "s/$1\ $currentep/$1\ $watchnext/g" /home/hasan/.config/aninfo/watchlist 
        echo "$(tput setaf 2)Marked as watched"
     else
        echo "$(tput setaf 1)Didn't Mark it as Watched"
@@ -122,6 +123,7 @@ sleep 2s
 echo -e "$(tput setaf 4)Do You Want To Watch The Next Episode? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n"
 read ANSWER
 while [ "$ANSWER" == "y" ]; do
+    echo -e "$(tput setaf 4)Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$x"
     anime dl "$1" -e $watchnext -c 1 --play "mpvquiet" &&
     echo -e "$(tput setaf 4)Mark Episode as Watched? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
     read ANSWER
@@ -133,6 +135,6 @@ while [ "$ANSWER" == "y" ]; do
        exit
     fi
     sleep 2s
-      echo -e "$(teput setaf 4)Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$x"
+      echo -e "$(tput setaf 4)Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$x"
       sleep 2s
 done
