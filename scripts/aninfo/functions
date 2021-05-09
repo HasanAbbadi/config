@@ -1,0 +1,61 @@
+#!/bin/sh
+
+listMyList(){ 
+    cat ~/.config/aninfo/watchlist
+} 
+
+removeMyList(){ 
+    sed -i "/$2/d" /home/hasan/.config/aninfo/watchlist 
+    rm ~/.config/aninfo/cache/"$2" && echo "Removed $2 from list"
+}
+
+editMyList(){
+    vim ~/.config/aninfo/watchlist
+}
+
+myHelpMessage(){
+    echo 'Usage: aninfo <FLAG> [NAME]
+    ----------------------------------
+       shows your list of anime           -l || --list
+       add anime to your list             -a || --add
+       remove anime from your list        -r || --remove
+       shows this help message            -h || --help
+       edit your list with vim            -e || --edit
+    ----------------------------------' 
+}
+
+addMyList(){
+    echo "Adding Anime to Watchlist..." && anime-cli setLimit true 2
+    anime-cli "$2" >> ~/.config/aninfo/cache/"$2" && echo "Caching data..."
+    tuxi ""$2" synopsis" >> ~/.config/aninfo/cache/"$2"
+
+    if [[ $2 == '' ]]; then 
+        echo "what anime ?" && exit
+        elif [[ $3 == '' ]]; then
+           echo "$2 0" >> ~/.config/aninfo/watchlist 
+           echo "Added $2 as a new anime" && exit
+    else
+        echo "$2 $3" >> ~/.config/aninfo/watchlist 
+        echo "Added $2, ep num. $3."&& exit
+    fi
+}
+
+cacheMyAnime() {
+    echo "wait a moment..." && anime-cli setLimit true 2 && anime-cli "$1" >> ~/.config/aninfo/cache/"$1" 
+    echo "getting anime info..." 
+    tuxi ""$1" synopsis" >> ~/.config/aninfo/cache/"$1" && cat ~/.config/aninfo/cache/"$1"
+} 
+
+markMyAnime() {
+    echo -e "$(tput setaf 4)Mark Episode as Watched? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
+    read ANSWER
+
+      if [[ $ANSWER == y ]]; then
+       watchnext=`expr $currentep + 1`
+       sed -i "s|$1\ $currentep|$1\ $watchnext|g" /home/hasan/.config/aninfo/watchlist 
+       echo "$(tput setaf 2)Marked as watched"
+  else
+       echo "$(tput setaf 1)Didn't Mark it as Watched"
+       exit
+  fi
+}

@@ -1,0 +1,87 @@
+#!/bin/sh
+# _   _    _    ____    _    _   _ 
+#| | | |  / \  / ___|  / \  | \ | |
+#| |_| | / _ \ \___ \ / _ \ |  \| |
+#|  _  |/ ___ \ ___) / ___ \| |\  |
+#|_| |_/_/   \_\____/_/   \_\_| \_|
+#                                  
+
+source ~/.config/aninfo/functions
+
+# [ flags ]
+
+case "$1" in
+    --list | -l ) listMyList ; exit ;;
+    --add | -a ) addMyList "$@" ; exit ;;
+    --remove | -r)  removeMyList "$@" ; exit ;;
+    --edit | -e) editMyList ; exit ;;
+    --help | -h | "" ) myHelpMessage ; exit ;;
+esac
+
+# [ cache the anime info ]
+
+[ -f ~/.config/aninfo/cache/"$(echo "$1" |tr [:upper:] [:lower:])" ] && cat ~/.config/aninfo/cache/"$(echo "$1" |tr [:upper:] [:lower:])" || cacheMyAnime
+
+# [ make watchlist if doesn't exist ]
+
+[ ! -f ~/.config/aninfo/watchlist ] && touch ~/.config/aninfo/watchlist
+
+# [ variables ]
+
+watchlist=$(grep -iF "$1" ~/.config/aninfo/watchlist)
+currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $2'})
+##> ( awk only episode number) 
+if [[ $currentep != [0-9] ]]; then
+    i=3
+    while true; do
+        currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $i'})
+        let "i+=1"
+    done
+fi
+
+# [ first prompt ]
+
+sleep 0.5s
+
+echo -e "$(tput setaf 4)do you wanna watch this anime? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
+read ANSWER
+
+if [ "$ANSWER" == "y" ]; then
+
+  if [[ $watchlist != "$1 $currentep" ]]; then
+         echo "$1 0" >> ~/.config/aninfo/watchlist
+        echo "Added to Watch List"
+        sleep 0.5s
+  else
+        echo "Already In Watch List"
+        sleep 0.5s
+  fi
+
+    watchnext=`expr $currentep + 1`
+    echo -e "$(tput setaf 4) Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$watchnext"
+    anime dl "$1" -e $watchnext --play "mpvquiet" &&
+    sleep 1s
+
+# [ mark episode as watched ]
+    
+markMyAnime "$@"
+else 
+    echo "How Unfortunate!" && exit
+fi
+
+# [ loop everything ]
+
+sleep 0.5s
+echo -e "$(tput setaf 4)Do You Want To Watch The Next Episode? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n"
+read ANSWER
+
+while [ "$ANSWER" == "y" ]; do
+    echo -e "$(tput setaf 4)Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$x"
+    anime dl "$1" -e $watchnext -c 1 --play "mpvquiet" &&
+
+markMyAnime "$@"
+
+    sleep 0.5s
+    echo -e "$(tput setaf 4)Playing $(tput setaf 2)$1 $(tput setaf 4)Episode num. $(tput setaf 2)$x"
+    sleep 0.5s
+done
