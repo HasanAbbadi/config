@@ -6,7 +6,8 @@
 #|_| |_/_/   \_\____/_/   \_\_| \_|
 #                                  
 
-source ~/.config/aninfo/functions
+# [ link the functions ]
+source ./functions
 
 # [ flags ]
 
@@ -18,13 +19,15 @@ case "$1" in
     --help | -h | "" ) myHelpMessage ; exit ;;
 esac
 
-# [ cache the anime info ]
-
-[ -f ~/.config/aninfo/cache/"$(echo "$1" |tr [:upper:] [:lower:])" ] && cat ~/.config/aninfo/cache/"$(echo "$1" |tr [:upper:] [:lower:])" || cacheMyAnime
-
 # [ make watchlist if doesn't exist ]
 
 [ ! -f ~/.config/aninfo/watchlist ] && touch ~/.config/aninfo/watchlist
+
+# [ cache the anime info ]
+
+cacheFile=$(echo "$1" |tr "[:upper:]" "[:lower:]")
+
+[ -f ~/.config/aninfo/cache/"$cacheFile" ] && cat ~/.config/aninfo/cache/"$cacheFile" || cacheMyAnime "$@"
 
 # [ variables ]
 
