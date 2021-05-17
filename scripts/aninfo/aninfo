@@ -27,26 +27,48 @@ esac
 
 cacheFile=$(echo "$1" |tr "[:upper:]" "[:lower:]")
 
-[ -f ~/.config/aninfo/cache/"$cacheFile" ] && cat ~/.config/aninfo/cache/"$cacheFile" || cacheMyAnime "$@"
+if [[ -f ~/.config/aninfo/cache/"$cacheFile" ]]; then
+    cat ~/.config/aninfo/cache/"$cacheFile"
+else
+    cacheMyAnime "$@"
+fi
 
 # [ variables ]
 
 watchlist=$(grep -iF "$1" ~/.config/aninfo/watchlist)
 currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $2'})
-##> ( awk only episode number) 
 if [[ $currentep != [0-9] ]]; then
-    i=3
-    while true; do
-        currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $i'})
-        let "i+=1"
-    done
-fi
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $3'})
+    if [[ $currentep != [0-9] ]]; then
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $4'})
+    if [[ $currentep != [0-9] ]]; then
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $5'})
+    if [[ $currentep != [0-9] ]]; then
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $6'})
+    if [[ $currentep != [0-9] ]]; then
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $7'})
+    if [[ $currentep != [0-9] ]]; then
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $8'})
+    if [[ $currentep != [0-9] ]]; then
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $9'})
+    if [[ $currentep != [0-9] ]]; then
+    currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $10'})
+
+    fi fi fi fi fi fi fi fi
+
+##> ( awk only episode number) 
+#i=3
+re='^[0-9]+$'
+#while [[ $currentep != $re ]]; do
+#        currentep=$(grep -iF "$1" ~/.config/aninfo/watchlist | awk {'print $i'})
+#        let "i+=1"
+#done
 
 # [ first prompt ]
 
-sleep 0.5s
+#sleep 0.5s
 
-echo -e "$(tput setaf 4)do you wanna watch this anime? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
+echo "$(tput setaf 4)do you wanna watch this anime? $(tput setaf 2)y$(tput sgr 0)/$(tput setaf 1)n$(tput setaf 3)"
 read ANSWER
 
 if [ "$ANSWER" == "y" ]; then
