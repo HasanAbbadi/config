@@ -6,7 +6,8 @@ allow_bold = true
 #cell_width_scale = 1.0
 clickable_url = true
 dynamic_title = true
-font =  FuraCode Nerd Font 21
+font =  FiraCode 21
+padding = 10
 #fullscreen = true
 #icon_name = terminal
 #mouse_autohide = false
@@ -47,7 +48,7 @@ foreground = #bbc5ff
 foreground_bold = #bbc5ff
 cursor = #bbc5ff
 # background transparency (requires a compositor)
-background = rgba(29, 31, 33, 0.95)
+background = rgba(29, 31, 33, 0.97)
 
 # if unset, will reverse foreground and background
 #highlight = #839496

@@ -1,7 +1,7 @@
 #
 # wm independent hotkeys
 #
-
+TERMINAL="termite"
 # terminal emulator
 super + Return
         termite
@@ -31,6 +31,10 @@ super + shift + m
 alt + @space
         {setxkbmap ar,setxkbmap us}
 
+# use keyboard to control mouse
+super + backslash
+        setxkbmap -option "caps:swapescape" && xmouseless && setxkbmap -option "caps:swapescape"
+        
 # start menu program launcher jgmenu
 super + alt + z
         jgmenu_run
@@ -46,6 +50,10 @@ super + x
 # restart polybar
 super + alt + p
         restartbar
+
+# turn on/off picom
+super + 0
+        { picom , killall picom }
 
 # make sxhkd reload its configuration files:
 super + Escape
@@ -69,6 +77,9 @@ super + {_,shift + }w
 super + m
 	bspc desktop -l next
 
+# hide current window and unhide it
+super + shift + x
+    {bsphide, bspunhide}
 # change to grid layout
 super + z
     bsp-layout set {grid,none}
@@ -132,8 +143,8 @@ super + {o,i}
 	bspc wm -h on
 
 # focus or send to the given desktop
-super + {_,shift + }{1-9,0}
-	bspc {desktop -f,node -d} '^{1-9,10}' --follow
+super + {_,shift + }{1-9}
+	bspc {desktop -f,node -d} '^{1-9}' --follow
 
 #
 # preselect

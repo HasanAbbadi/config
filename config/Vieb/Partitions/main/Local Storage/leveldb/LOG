@@ -1,6 +1,0 @@
-2021/04/11-08:30:03.766 7c9 Reusing MANIFEST /home/hasan/.config/Vieb/Partitions/main/Local Storage/leveldb/MANIFEST-000001
-2021/04/11-08:30:03.767 7c9 Recovering log #9
-2021/04/11-08:30:03.768 7c9 Reusing old log /home/hasan/.config/Vieb/Partitions/main/Local Storage/leveldb/000009.log 
-2021/04/11-08:30:58.838 7a0 Level-0 table #13: started
-2021/04/11-08:30:58.845 7a0 Level-0 table #13: 43140 bytes OK
-2021/04/11-08:30:58.850 7a0 Delete type=0 #9
