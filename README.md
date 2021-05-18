@@ -11,27 +11,27 @@ where I have my files here public to everyone.
 
 ### Included Scripts
 
-This is the list of most of the included scripts in the repo.
+This is the list of the best scripts in the repo.
 
 - **aninfo** : get information about an anime and watch it from the terminal.
     > needed dependencies: anime-downloader, anime-cli, tuxi, mpv.
-- **movinfo**: modified from "Sermov", graps movies info from imdb
+- **movinfo**: modified from "Sermov", graps movies info from imdb.
     > needed: peerflix, pirate-get, wget, vim.
 - **cbrmanga**: converts folders of photos into .cbr files.
     > needed: zip.
-- **sxort**: sort photos by (name, type, etc..) and view them with sxiv
+- **sxort**: sort photos by (name, type, etc..) and view them with sxiv.
     > needed: sxiv.
 - **wally**: change your wallpaper with a couple of options.
     > needed: xwallapaper, notify-send.
-- **dm**-emoji: copy emojis from dmenu
-    > needed: dmenu, emoji-data.txt(included in the directory), xsel.
-- **keepawake**: keeps the screen awake
+- **dm-emoji**: copy emojis from dmenu.
+    > needed: dmenu, xsel,  emoji-data.txt(included in the directory).
+- **keepawake**: keeps the screen awake.
     > needed: xdotool.
-- **betterfeh**: feh but fits photo to window size automatically
+- **betterfeh**: feh but fits photo to window size automatically.
     > needed: feh, xdotool.
-- **mc**, ms: list configuration files in fzf and edits them with vim
+- **mc**, **ms**: list configuration files in fzf and edits them with vim.
     > needed: fzf, vim.
-- **gaps**: change bspwm gaps value quickly ( you can add it to sxhkd )
+- **gaps**: change bspwm gaps value quickly ( used in sxhdrc ).
 
 And a couple more, but they're nothing special.
 
