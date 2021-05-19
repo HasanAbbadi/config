@@ -1,6 +1,5 @@
 setxkbmap -option "caps:swapescape" &
-wal -R &
-poly &
-lxappearance &
-killall lxappearance &
-xautolock -time 5 -locker "systemctl suspend" -detectsleep &
+./.config/polybar/.launch.sh --personal &
+dunst -fn "Fira Code 19" -nto 5 -nb "#1d1f21" -transparency 20 -progress_bar_min_width 10 -progress_bar_max_width 100 &
+xsetroot -adwaita left_ptr &
+xautolock -time 7 -locker "systemctl suspend" -detectsleep &

@@ -20,7 +20,7 @@ Plug 'mattn/emmet-vim'
 Plug 'yuezk/vim-js'
 Plug 'turbio/bracey.vim'
 " Beauty 
-Plug 'arcticicestudio/nord-vim'
+Plug 'rafi/awesome-vim-colorschemes'
 Plug 'vim-syntastic/syntastic'
 Plug 'arzg/vim-colors-xcode'
 Plug 'https://github.com/dylanaraps/wal.vim'
@@ -42,6 +42,7 @@ set scrolloff=9
 set tabstop=4
 set shiftwidth=4
 set expandtab
+set hlsearch
 set number
 set hidden
 set incsearch
@@ -55,7 +56,8 @@ set completefunc=emoji#complete
 "    \ execute "wincmd l" 
     
 autocmd! bufwritepost .vimrc source %
-colorscheme gruvbox
+autocmd! bufwritepost ~/.config/vim/vimrc source %
+colorscheme deus
 set background=dark
 hi Normal guibg=NONE ctermbg=NONE
 exec "hi Normal guibg=NONE ctermbg=NONE"
@@ -71,6 +73,7 @@ let &t_EI = "\<Esc>[2 q"
 
 map <C-N> :NERDTree<CR>
 nnoremap <C-X> :xa<CR>
+nnoremap <silent> <Space> :nohlsearch<Bar>:echo<CR>
 let g:user_emmet_leader_key=','
 
 
@@ -125,3 +128,5 @@ if has("win32unix")
     let &t_EI.="\e[1 q"
     let &t_te.="\e[0 q"
 endif
+
+set mouse=a

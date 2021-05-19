@@ -1,19 +1,23 @@
 # I use arch btw
-pfetch && date
+randomfetch 
 # Hasan's config of the zsh shell
 #
+source ~/.zprofile
+
 alias v='vim'
 alias sps='sudo pacman -S'
-alias ls='lsd'
+alias clr="clear && zsh"
+alias ls='ls --color=always'
+#alias ls='lsd'
 alias chlay='bsp-layout set'
-alias downman="mangadl "$1" -r -d ~/manga/"
+alias downman="mangadl -r -d ~/manga/ $1" 
 # Aliases
 
 # [Translate] aliases
-alias enar='trans en:ar "$argv"'
-alias aren='trans ar:en "$argv"'
-alias enjpn='trans en:jpn "$argv"'
-alias jpnen='trans jpn:en "$argv"'
+alias enar="trans en:ar "$1""
+alias aren="trans ar:en "$1""
+alias enjpn="trans en:jpn "$1""
+alias jpnen="trans jpn:en "$1""
 
 # polybar aliases
 alias lapo='bash ~/.config/polybar/launch.sh'
@@ -41,8 +45,8 @@ alias gcm='git commit -m'
 PS1="%~%\ ⟩%b "
 
 export HISTFILE=~/.cache/zsh/history
-export HISTSIZE=10000
-export SAVEHIST=10000
+export HISTSIZE=100000
+export SAVEHIST=100000
 setopt INC_APPEND_HISTORY
 export HISTTIMEFORMAT="[%F %T] "
 setopt EXTENDED_HISTORY
@@ -94,7 +98,7 @@ preexec() { echo -ne '\e[5 q' ;} # Use beam shape cursor for each new prompt.
                                      [ -d "$dir" ] && [ "$dir" != "$(pwd)" ] && cd "$dir"
                                          fi
                                          }
-                                         bindkey -s '^o' 'lfcd\n'
+                                         bindkey -s '^o' 'ranger\n'
 
 
 # Edit line in vim with ctrl-e:
@@ -111,8 +115,8 @@ preexec() { echo -ne '\e[5 q' ;} # Use beam shape cursor for each new prompt.
  
 # Lines configured by zsh-newuser-install
 HISTFILE=~/.cache/zsh/.zsh_history
-HISTSIZE=10000
-SAVEHIST=10000
-# End of lines configured by zsh-newuser-install
+HISTSIZE=100000
+SAVEHIST=100000
+
 
 PATH="/home/hasan/.mangadl-bash:${PATH}"
