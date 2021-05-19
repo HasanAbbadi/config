@@ -1,0 +1,33 @@
+#!/bin/sh
+[ ! -d ~/.config/readmanga ] && mkdir ~/.config/readmanga
+
+currentNotify(){
+    myInfo=$(cat ~/.config/readmanga/"$myManga" | tail -n1 | sed "s|$HOME/manga/||g" | sed 's+/+ | +g')
+    notify-send "Currently Reading:
+$myInfo"
+}
+
+choose(){
+    myChapter=$(ls --color=auto ~/manga/"$myManga" | fzy)
+    [ -z "$myChapter" ] &&  echo "you think you're funny, huh." && exit
+    find ~/manga/"$myManga"/"$myChapter" | sort -V -k1 | sed 1d | imv > ~/.config/readmanga/"$myManga"
+}
+
+case "$1" in
+        -e ) vim ~/.config/readmanga/ && exit ;;
+        -h ) echo "heh?" && exit ;;
+        -c ) choose ;;
+esac
+
+myManga=$(ls --color=auto ~/manga/ | fzy )
+
+[ -z "$myManga" ] &&  echo "you think you're funny, huh." && exit 
+
+if [[ -f ~/.config/readmanga/$myManga ]]; then
+
+    myPage=$(cat ~/.config/readmanga/"$myManga" | tail -n1 )
+    find ~/manga/"$myManga" -mindepth 2 | sort -V -k1 | grep -B 1 -A 100000000000000 "$myPage" | imv >> ~/.config/readmanga/"$myManga" & currentNotify
+
+else
+    choose
+fi
