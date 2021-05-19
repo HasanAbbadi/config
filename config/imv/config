@@ -1,0 +1,12 @@
+[options]
+
+background = 1d1f21
+
+[binds]
+h = prev
+l = next
+
+p = exec echo $imv_current_file && notify-send "Checkpoint saved!"
+w = exec xwallpaper --zoom $imv_current_file
+v = flip horizontal
+c = flip vertical
