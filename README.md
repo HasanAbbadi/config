@@ -19,6 +19,8 @@ This is the list of the best scripts in the repo.
     > needed: peerflix, pirate-get, wget, vim.
 - **cbrmanga**: converts folders of photos into .cbr files.
     > needed: zip.
+- **mangaread**: read manga with imv and save your progress.
+    > needed: imv, notify-send, my imv config.
 - **sxort**: sort photos by (name, type, etc..) and view them with sxiv.
     > needed: sxiv.
 - **wally**: change your wallpaper with a couple of options.
