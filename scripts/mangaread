@@ -1,0 +1,28 @@
+#!/bin/sh
+
+currentNotify(){
+    myInfo=$(cat ~/.config/mangaread/Kanojo,\ Okarishimasu | tail -n1 | sed "s|$HOME/manga/||g" | sed 's+/+ | +g'
+)
+    notify-send "Currently Reading:
+    $myInfo"
+}
+
+case "$1" in
+        -e ) vim ~/.config/mangaread/ && exit ;;
+        -h ) echo "heh?" && exit
+esac
+
+myManga=$(ls --color=auto ~/manga/ | fzy )
+
+
+if [[ -f ~/.config/mangaread/$myManga ]]; then
+    myPage=$(cat ~/.config/mangaread/"$myManga" | tail -n1 )
+
+    find ~/manga/"$myManga" -mindepth 2 | sort -V -k1 | grep -B 1 -A 100000000000000 "$myPage" | imv >> ~/.config/mangaread/"$myManga" & currentNotify
+
+else
+
+    myChapter=$(ls --color=auto ~/manga/"$myManga" | fzy)
+    find ~/manga/"$myManga"/"$myChapter" | sort -V -k1 | sed 1d | imv > ~/.config/mangaread/"$myManga"
+
+fi
