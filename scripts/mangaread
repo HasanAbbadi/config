@@ -9,11 +9,12 @@ currentNotify(){
 
 case "$1" in
         -e ) vim ~/.config/mangaread/ && exit ;;
-        -h ) echo "heh?" && exit
+        -h ) echo "heh?" && exit ;;
 esac
 
 myManga=$(ls --color=auto ~/manga/ | fzy )
 
+[ -z $myManga ] &&  echo "you think you're funny, huh." && exit
 
 if [[ -f ~/.config/mangaread/$myManga ]]; then
     myPage=$(cat ~/.config/mangaread/"$myManga" | tail -n1 )
