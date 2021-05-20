@@ -13,13 +13,21 @@ choose(){
     find ~/manga/"$myManga"/"$myChapter" | sort -V -k1 | sed 1d | imv > ~/.config/readmanga/"$myManga"
 }
 
+newManga(){
+    echo "What is the name of the manga?"
+    read ANSWER
+    mangadl "$ANSWER" -r -d ~/manga/ 
+}
+
 case "$1" in
         -e ) vim ~/.config/readmanga/ && exit ;;
         -h ) echo "heh?" && exit ;;
-        -c ) choose ;;
+        -n ) newManga && exit ;;
 esac
 
 myManga=$(ls --color=auto ~/manga/ | fzy )
+
+case "$1" in -c ) choose ;; esac
 
 [ -z "$myManga" ] &&  echo "you think you're funny, huh." && exit 
 
