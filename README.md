@@ -21,8 +21,8 @@ This is the list of the best scripts in the repo.
 - **cbrmanga**: converts folders of photos into .cbr files.
     > needed: zip.
 - **readmanga**: read manga with imv and save your progress.
-#### pix
     > needed: imv, notify-send, my imv config.
+#### pix
 - **sxort**: sort photos by (name, type, etc..) and view them with sxiv.
     > needed: sxiv.
 - **wally**: change your wallpaper with a couple of options.
