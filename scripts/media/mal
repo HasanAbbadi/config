@@ -18,6 +18,10 @@ mySearch(){
 
 }
 
+case "$1" in
+    -s | --season ) curl "https://myanimelist.net/anime/season/"$3"/"$2"" 2>/dev/null | grep "h2_anime_title" | cut -d '>' -f 3 | cut -d '<' -f 1 | awk '{print NR  " " $s}' ; exit ;;
+esac
+
 (mySearch ""$@" myanimelist") >/dev/null
 
 wget -O "$@" $(cat urls | head -n1 ) 2>/dev/null
@@ -26,7 +30,12 @@ myWord="$(html2text "$@" | grep -iF 'Synopsis' -A 2 | tail -n1 | cut -d ' ' -f 1
 
 html2text "$@" > html2text"$@".txt 
 
+# cover photo
+wget -O pics $(cat html2text"$1".txt | grep -i "pictures" | cut -d '(' -f 2 | sed 's/)//') 2>/dev/null
+html2text pics > pics2text
+(curl $(cat pics2text | grep -i "jpg" | cut -d '(' -f 2 | cut -d ' ' -f1 | sed 1d | head -n1) | imv -c ":zoom -7" - &) 2>/dev/null
 
+# output
 echo -e "$(tput setaf 2)---------------------------------------"
 
 echo "Title:$(grep -iF "ALternative Titles" -A 2 html2text"$@".txt | tail -n1 | sed 's/English://g')"
@@ -41,9 +50,13 @@ echo "Synopsis:"
 echo -e "$(tput setaf 7)\b"
 awk -v RS='' "/$myWord/" html2text"$@".txt 
 echo -e "$(tput setaf 2)---------------------------------------"
+echo -e "$(tput setaf 5)"
 
-grep -iF "information" -A 30 html2text"$1".txt |sed -n '/--/q;p'| sed "s/([^)]*)//g" | sed 1d
+grep -iF "information" -A 30 html2text"$1".txt |sed -n '/--/q;p'| sed "s/([^)]*)//g" | sed 1,2d
 
+# delete trash
 rm urls
 rm "$@"
+rm pics
+rm pics2text
 rm html2text"$@".txt
