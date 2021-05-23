@@ -1,5 +1,16 @@
 #!/bin/sh
 
+#===================================
+# _   _    _    ____    _    _   _ #
+#| | | |  / \  / ___|  / \  | \ | |#
+#| |_| | / _ \ \___ \ / _ \ |  \| |#
+#|  _  |/ ___ \ ___) / ___ \| |\  |#
+#|_| |_/_/   \_\____/_/   \_\_| \_|#
+#                                  #
+#===================================
+
+#### [functions]
+# search google for myanimelist
 mySearch(){
     SEARCH=$@
     URL="http://google.com/search?hl=en&safe=off&q="
@@ -15,44 +26,53 @@ mySearch(){
     echo ""
     cat urls
     echo ""
-
 }
 
+# flags
 case "$1" in
-    -s | --season ) curl "https://myanimelist.net/anime/season/"$3"/"$2"" 2>/dev/null | grep "h2_anime_title" | cut -d '>' -f 3 | cut -d '<' -f 1 | awk '{print NR  " " $s}' ; exit ;;
+    -s | --season ) curl "https://myanimelist.net/anime/season/"$3"/"$2"" 2>/dev/null | grep "h2_anime_title" | cut -d '>' -f 3 | cut -d '<' -f 1 | awk '{print NR  " " $s}' | sort -V -k1 -r ; exit ;;
+    -h | --help ) echo "dude, it's obvious." ; exit ;;
 esac
 
+# bts
 (mySearch ""$@" myanimelist") >/dev/null
 
 wget -O "$@" $(cat urls | head -n1 ) 2>/dev/null
 
-myWord="$(html2text "$@" | grep -iF 'Synopsis' -A 2 | tail -n1 | cut -d ' ' -f 1-4)"
+myWord="$(html2text "$@" | grep 'Synopsis' -A 2 | tail -n1 | cut -d ' ' -f 1-10)"
 
 html2text "$@" > html2text"$@".txt 
 
 # cover photo
-wget -O pics $(cat html2text"$1".txt | grep -i "pictures" | cut -d '(' -f 2 | sed 's/)//') 2>/dev/null
+myType=$(grep "Type:" html2text"$1".txt | cut -d '[' -f 2 | cut -d ']' -f 1)
+
+if [[ $myType == "Manga" ]]; then
+    wget -O pics $(cat html2text"$1".txt | grep -i "pictures" | cut -d '(' -f 2 | sed 's/)//' | sed 's|^|https://myanimelist.net|g') 2>/dev/null
+else
+    wget -O pics $(cat html2text"$1".txt | grep -i "pictures" | cut -d '(' -f 2 | sed 's/)//') 2>/dev/null
+fi
 html2text pics > pics2text
 (curl $(cat pics2text | grep -i "jpg" | cut -d '(' -f 2 | cut -d ' ' -f1 | sed 1d | head -n1) | imv -c ":zoom -7" - &) 2>/dev/null
 
 # output
 echo -e "$(tput setaf 2)---------------------------------------"
 
-echo "Title:$(grep -iF "ALternative Titles" -A 2 html2text"$@".txt | tail -n1 | sed 's/English://g')"
-echo -e "\b"
+echo -e "Title:$(grep -iF "ALternative Titles" -A 2 html2text"$@".txt | tail -n1 | sed 's/English://g')"
+echo -e "$(tput setaf 3)\b"
 grep -iF "score:" html2text"$1".txt | tail -n1
 echo -e "\b"
 grep -iF "ranked:" html2text"$1".txt | tail -n1
-echo -e "\b"
+echo -e "$(tput setaf 2)---------------------------------------"
 
-
+echo -e "$(tput setaf 7)\b"
 echo "Synopsis:"
 echo -e "$(tput setaf 7)\b"
 awk -v RS='' "/$myWord/" html2text"$@".txt 
 echo -e "$(tput setaf 2)---------------------------------------"
-echo -e "$(tput setaf 5)"
 
-grep -iF "information" -A 30 html2text"$1".txt |sed -n '/--/q;p'| sed "s/([^)]*)//g" | sed 1,2d
+echo -e "$(tput setaf 6)"
+grep -iF "information" -A 30 html2text"$1".txt | sed -n "/Serialization/q;p" | sed -n "/--/q;p"| sed "s/([^)]*)//g" | sed 1,2d
+echo -e "$(tput setaf 2)---------------------------------------"
 
 # delete trash
 rm urls
