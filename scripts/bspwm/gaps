@@ -13,7 +13,7 @@ Less=`expr $gap - $increase`
 
 if [[ -z $1 ]]; then
 echo "you need to provide an argument:
-more, less"
+more, less or default"
 fi
 
 if [[ $1 == "more" ]]; then
@@ -26,3 +26,7 @@ if [[ $1 == "less" ]]; then
     echo $Less
 fi
 
+if [[ $1 == "default" ]]; then
+    bspc config window_gap 20
+    echo 20
+fi
