@@ -1,8 +1,8 @@
 #!/bin/sh
-[ ! -d ~/.config/readmanga ] && mkdir ~/.config/readmanga
+[ ! -d ~/.cache/readmanga ] && mkdir ~/.cache/readmanga
 
 currentNotify(){
-    myInfo=$(cat ~/.config/readmanga/"$myManga" | tail -n1 | sed "s|$HOME/manga/||g" | sed 's+/+ | +g')
+    myInfo=$(cat ~/.cache/readmanga/"$myManga" | tail -n1 | sed "s|$HOME/manga/||g" | sed 's+/+ | +g')
     notify-send "Currently Reading:
 $myInfo"
 }
@@ -10,7 +10,7 @@ $myInfo"
 choose(){
     myChapter=$(ls --color=auto ~/manga/"$myManga" | fzy)
     [ -z "$myChapter" ] &&  echo "you think you're funny, huh." && exit
-    find ~/manga/"$myManga"/"$myChapter" | sort -V -k1 | sed 1d | imv > ~/.config/readmanga/"$myManga"
+    find ~/manga/"$myManga"/"$myChapter" | sort -V -k1 | sed 1d | imv > ~/.cache/readmanga/"$myManga"
 }
 
 newManga(){
@@ -19,22 +19,30 @@ newManga(){
     mangadl "$ANSWER" -r -d ~/manga/ 
 }
 
+outputOnly(){ cat ~/.cache/readmanga/"$myManga" | tail -n1 ; exit ; }
+
+readManga(){
+     find ~/manga/"$myManga" -mindepth 2 | sort -V -k1 | grep -A 1000000 "$myPage"
+     find ~/manga/end.jpg
+     find ~/manga/"$myManga" -mindepth 2 | sort -V -k1 | grep -B 1000000 "$myPage"
+}
+
 case "$1" in
-        -e ) vim ~/.config/readmanga/ && exit ;;
+        -e ) vim ~/.cache/readmanga/ && exit ;;
         -h ) echo "heh?" && exit ;;
         -n ) newManga && exit ;;
 esac
 
-myManga=$(ls --color=auto ~/manga/ | fzy )
+myManga=$(ls -d ~/manga/*/ -1 | cut -d '/' -f 5 | fzy )
 
-case "$1" in -c ) choose ;; esac
+case "$1" in -c ) choose ; exit ;; -o ) outputOnly ;; esac
 
 [ -z "$myManga" ] &&  echo "you think you're funny, huh." && exit 
 
-if [[ -f ~/.config/readmanga/$myManga ]]; then
+if [[ -f ~/.cache/readmanga/$myManga ]]; then
 
-    myPage=$(cat ~/.config/readmanga/"$myManga" | tail -n1 )
-    find ~/manga/"$myManga" -mindepth 2 | sort -V -k1 | grep -B 1 -A 100000000000000 "$myPage" | imv >> ~/.config/readmanga/"$myManga" & currentNotify
+    myPage=$(cat ~/.cache/readmanga/"$myManga" | tail -n1 )
+    readManga | imv >> ~/.cache/readmanga/"$myManga" & currentNotify
 
 else
     choose
