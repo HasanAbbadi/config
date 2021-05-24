@@ -14,8 +14,10 @@ where I have my files here public to everyone.
 This is the list of the best scripts in the repo.
 
 #### Media
+- **mal** : scraps myanimelist for detailed information about an anime of a manga, also view list of [any season] [any year] animes.
+    > needed: lynx, wget, html2text, imv.
 - **aninfo** : get information about an anime and watch it from the terminal.
-    > needed dependencies: anime-downloader, anime-cli, tuxi, mpv.
+    > needed: anime-downloader, anime-cli, tuxi, mpv.
 - **movinfo**: modified from "Sermov", graps movies info from imdb.
     > needed: peerflix, pirate-get, wget, vim.
 - **cbrmanga**: converts folders of photos into .cbr files.

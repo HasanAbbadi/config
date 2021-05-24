@@ -1,3 +1,0 @@
-#!/bin/sh
-
-mpv --really-quiet $1
