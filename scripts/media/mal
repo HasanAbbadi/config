@@ -39,10 +39,11 @@ esac
 
 wget -O "$@" $(cat urls | head -n1 ) 2>/dev/null
 
-myWord="$(html2text "$@" | grep 'Synopsis' -A 2 | tail -n1 | cut -d ' ' -f 1-6)"
 
 html2text "$@" > removereviews"$@".txt 
 sed -n '/More\ reviews/q;p' removereviews"$@".txt > html2text"$@".txt
+
+myWord="$(cat html2text"$@".txt | grep 'Synopsis' -A 2 | tail -n1 | cut -d ' ' -f 1-6)"
 
 # cover photo
 myType=$(grep "Type:" html2text"$1".txt | cut -d '[' -f 2 | cut -d ']' -f 1)
