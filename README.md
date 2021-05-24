@@ -14,7 +14,7 @@ where I have my files here public to everyone.
 This is the list of the best scripts in the repo.
 
 #### Media
-- **mal** : scraps myanimelist for detailed information about an anime of a manga, also view list of [any season] [any year] animes.
+- **mal** : scraps myanimelist for detailed information about an anime or a manga, also view list of seasonal animes.
     > needed: lynx, wget, html2text, imv.
 - **aninfo** : get information about an anime and watch it from the terminal.
     > needed: anime-downloader, anime-cli, tuxi, mpv.
