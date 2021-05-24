@@ -14,14 +14,14 @@
 mySearch(){
     SEARCH=$@
     URL="http://google.com/search?hl=en&safe=off&q="
-    STRING=`echo $SEARCH | sed 's/ /%20/g'`
-    URI="$URL%22$STRING%22"
+    STRING=`echo $SEARCH | sed 's/ /+/g'`
+    URI="$URL$STRING"
     
-    lynx -dump $URI > gone.tmp
-    sed 's/http/\^http/g' gone.tmp | tr -s "^" "\n" | grep http| sed 's/\ .*//g' > gtwo.tmp
-    rm gone.tmp
-    sed '/google.com/d' gtwo.tmp > urls
-    rm gtwo.tmp
+    lynx -dump $URI > raw.tmp
+    sed 's/http/\^http/g' raw.tmp | tr -s "^" "\n" | grep http| sed 's/\ .*//g' > modified.tmp
+    rm raw.tmp
+    sed '/google.com/d' modified.tmp > urls
+    rm modified.tmp
     
     echo ""
     cat urls
@@ -39,9 +39,10 @@ esac
 
 wget -O "$@" $(cat urls | head -n1 ) 2>/dev/null
 
-myWord="$(html2text "$@" | grep 'Synopsis' -A 2 | tail -n1 | cut -d ' ' -f 1-10)"
+myWord="$(html2text "$@" | grep 'Synopsis' -A 2 | tail -n1 | cut -d ' ' -f 1-6)"
 
-html2text "$@" > html2text"$@".txt 
+html2text "$@" > removereviews"$@".txt 
+sed -n '/More\ reviews/q;p' removereviews"$@".txt > html2text"$@".txt
 
 # cover photo
 myType=$(grep "Type:" html2text"$1".txt | cut -d '[' -f 2 | cut -d ']' -f 1)
@@ -71,12 +72,13 @@ awk -v RS='' "/$myWord/" html2text"$@".txt
 echo -e "$(tput setaf 2)---------------------------------------"
 
 echo -e "$(tput setaf 6)"
-grep -iF "information" -A 30 html2text"$1".txt | sed -n "/Serialization/q;p" | sed -n "/--/q;p"| sed "s/([^)]*)//g" | sed 1,2d
+grep -iF "information" -A 30 html2text"$1".txt | grep -iv "produc" | sed -n "/Serialization/q;p" | sed -n "/--/q;p"| sed "s/([^)]*)//g" | sed 1,2d | cat -s
 echo -e "$(tput setaf 2)---------------------------------------"
 
 # delete trash
 rm urls
 rm "$@"
+rm removereviews"$@".txt
+rm html2text"$@".txt
 rm pics
 rm pics2text
-rm html2text"$@".txt
