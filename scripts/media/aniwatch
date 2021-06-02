@@ -7,39 +7,51 @@ myFILE="$HOME/.cache/watchlist"
 myLIST(){
     printf %35s |tr " " "="
     echo -e "\n"
-    paste <(cut -d '|' -f1 $myFILE) <(cut -d'|' -f2 $myFILE) | awk -v FS='\t' '{printf("%-30s %s\n",$1,$2)}' | awk '{sub(/^/, " ", $0)}1' | sed "0~1 a\ $(printf %32s |tr " " " ") \ "
+    paste <(cut -d '|' -f1 $myFILE) <(cut -d'|' -f2 $myFILE) | awk -v FS='\t' '{printf("%-70s %s\n",$1,$2)}' | awk '{sub(/^/, " ", $0)}1' | sed "0~1 a\ $(printf %32s |tr " " " ") \ "
     printf %35s |tr " " "="
     echo ""
 }
 
 watchAnime(){
     if [[ "$1" == "-a" ]] || [[ "$1" == "--all" ]]; then
-        Select=`paste <(cat $myFILE | cut -d '|' -f 1 ) <(cut -d '|' -f 2,4 $myFILE | sed 's/^/|/g') | awk -v FS='\t' '{printf("%-30s %s\n",$1,$2)}' | fzy | cut -d '|' -f1 | sed 's/[ \t]*$//'`
+        Select=`paste <(cat $myFILE | cut -d '|' -f 1 ) <(cut -d '|' -f 2,4 $myFILE | sed 's/^/|/g') | awk -v FS='\t' '{printf("%-45s %s\n",$1,$2)}' | fzy | cut -d '|' -f1 | sed 's/[ \t]*$//'`
     [ -z "$Select" ] && echo "nothing selected." && exit
     else
-        Select=`paste <(grep watching $myFILE | cut -d '|' -f 1 ) <(grep watching $myFILE | cut -d '|' -f 2,4 | sed 's/^/|/g') | awk -v FS='\t' '{printf("%-30s %s\n",$1,$2)}' | fzy | cut -d '|' -f1 | sed 's/[ \t]*$//'`
+
+if [[ -z $1 ]] || [[ "$1" == "--download-dir" ]] || [[ $1 == "--hide-subs" ]]; then
+
+        Select=`paste <(grep -i watching $myFILE | cut -d '|' -f 1 ) <(grep -i watching $myFILE | cut -d '|' -f 2,4 | sed 's/^/|/g') | awk -v FS='\t' '{printf("%-45s %s\n",$1,$2)}' | fzy | cut -d '|' -f1 | sed 's/[ \t]*$//'`
     [ -z "$Select" ] && echo "nothing selected." && exit
-
-
-if [[ -z $1 ]]; then
-
 
     currentEP=$(grep "$Select" $myFILE | cut -d '|' -f 2)
     EP=`expr "$currentEP" + 1 `
     myChoice=$(grep "$Select" $myFILE | cut -d '|' -f 3)
 
+    if [[ $1 == "--hide-subs" ]]; then
+        screenkey -s medium --font-color black --no-sys --opacity 1 -t 1900 &
+
     if [[ $myChoice == "0" ]]; then
         echo -e "PLEASE REMEMBER WHICH NUMBER YOU WILL SELECT RIGHT NOW!"
         sleep 1s
         echo "playing $Select ep num. $EP"
-        anime dl "$Select" -e "$EP"
+        if [[ "$1" == "--download-dir" ]]; then 
+            anime dl "$Select" -e "$EP" -p animesuge --download-dir "$2"
+        else
+            anime dl "$Select" -e "$EP" -p animesuge --play mpv
+        fi
         echo "what was the anime number that you selected?"
         read NUMBER
-        sed -i "s/^$Select.*/$Select|$currentEP|$NUMBER/" "$myFILE"
+        sed -i "s/^$Select.*/$Select|$currentEP|$NUMBER|Watching/" "$myFILE"
 
     else
         echo "playing $Select ep num. $EP"
-        anime dl "$Select" -e "$EP" -c $myChoice
+            if [[ "$1" == "--download-dir" ]]; then
+            anime dl "$Select" -e "$EP" -c $myChoice -p animesuge --download-dir "$2"
+            else
+            anime dl "$Select" -e "$EP" -c $myChoice -p animesuge --play mpv
+            fi
+fi
+    killall screenkey
     fi
 
     echo "mark as watched?"
@@ -63,7 +75,7 @@ fi
     fi
 }
 
-loop(){ 
+loop(){
     while true; do
     watchAnime
     done
@@ -120,57 +132,70 @@ myanimelist(){
         -t | --top ) topList "$@" ; exit ;;
         -h | --help ) helpMe ; exit ;;
     esac
-    
+
     # bts
     (mySearch ""$@" myanimelist") >/dev/null
-    
+
     (curl $(cat urls | head -n1 ) | html2text > raw.txt ) 2>/dev/null
-    
+
     rm urls
-    
+
     sed -n '/More\ reviews/q;p' raw.txt > page.txt
-    
+
     rm raw.txt
-    
+
     myWord="$(cat page.txt | grep 'Synopsis' -A 2 | tail -n1 | cut -d ' ' -f 1-6)"
-    
+
     # cover photo
     myType=$(grep "Type:" page.txt | cut -d '[' -f 2 | cut -d ']' -f 1)
-    
+
     if [[ $myType == "Manga" ]]; then
         (curl $(cat page.txt | grep -i "pictures" | cut -d '(' -f 2 | sed 's/)//' | sed 's|^|https://myanimelist.net|g') | html2text > pics) 2>/dev/null
     else
         (curl $(cat page.txt | grep -i "pictures" | cut -d '(' -f 2 | sed 's/)//') | html2text > pics) 2>/dev/null
     fi
     (curl $(cat pics | grep -i "jpg" | cut -d '(' -f 2 | cut -d ' ' -f1 | sed 1d | head -n1) | imv - &) 2>/dev/null
-    
-    
+
+
     # output
     echo -e "$(tput setaf 2)---------------------------------------"
-    
+
     echo -e "Title:$(grep -iF "ALternative Titles" -A 2 page.txt | tail -n2 | sed 's/English://g')"
     echo -e "$(tput setaf 3)\b"
-    
+
     grep -iF "score:" page.txt | tail -n1
     echo -e "\b"
-    
+
     grep -iF "ranked:" page.txt | tail -n1
     echo -e "$(tput setaf 2)---------------------------------------"
     echo -e "$(tput setaf 7)\b"
-    
+
     echo "Synopsis:"
     echo -e "$(tput setaf 7)\b"
     awk -v RS='' "/$myWord/" page.txt
-    
+
     echo -e "$(tput setaf 2)---------------------------------------"
     echo -e "$(tput setaf 6)"
-    
+
     grep -iF "information" -A 30 page.txt | grep -iv "produc" | sed -n "/Serialization/q;p" | sed -n "/--/q;p"| sed "s/([^)]*)//g" | sed 1,2d | cat -s
     echo -e "$(tput setaf 2)---------------------------------------"
-    
+
     rm page.txt
     rm pics
 }
+
+importMyList(){
+    if [[ $2 == *.gz ]]; then
+        my_xml_list=$(echo "$2" | sed 's/.gz//g' )
+        gzip -d "$2"
+    else
+        my_xml_list="$2"
+    fi
+    list_num=$(grep "my_status" $my_xml_list | wc -l )
+
+    (paste -d '|' <(grep "series_title" $my_xml_list | cut -d '[' -f 3 | cut -d ']' -f1) <(grep "my_watched_episodes" $my_xml_list | cut -d '>' -f2 | cut -d '<' -f 1) <( for i in $(seq 1 $list_num);do echo 0; done ) <(grep "my_status" $my_xml_list | cut -d '>' -f2 | cut -d '<' -f 1)) >> $myFILE && echo "Imported Succefully!"
+    
+    }
 
 myHelp(){
     MOVE_UP=`tput cuu 1` ; CLEAR_LINE=`tput el 1` ; BOLD=`tput bold` ; UNDERLINE=`tput smul` ; RESET=`tput sgr0`
@@ -189,13 +214,18 @@ myHelp(){
         -e | --edit )       Manually edit your list.\n\
         -l | --list )       Look at your list, you have shitty taste.\n\
         -a | --all )        Watch any anime from your list even if flagged as (dropped, completed, etc..)\n\
+        -t | --top )        list of 100 top manga/anime\n\
+        -s | --season )     list of anime in any season any year\n\
+        --import )          import your 'myanimelist' xml list.\n\
+        --download-dir )    specify a directory to download the episode instead of watching it.\n\
         -p | --loop )       Keep watching anime, such a weeb.\n\
-        -h | --help )       what do you think this does.\n\n\
-        -m | --info )       Scraps 'my Anime List' for info about anime/manga, it has flags too.\n\
+        -h | --help )       what do you think this does.\n\
+        info )              Scraps 'my Anime List' for info about anime/manga, it has flags too.\n\n\
+        In alternate to the '-t' and '-s' flags, you can use $BOLD aniwatch info$RESET followed by:
         \tYou can always run these without an argument to learn more about the usage.\n\
         \t-t | --top )      list of 100 top manga/anime\n\
         \t-s | --season ) list of anime in any season any year\n\
-        \t-h | --help ) help message for the '-i' flag
+        \t-h | --help ) help message for the 'info' flag
         "
 }
 
@@ -203,7 +233,10 @@ case "$1" in
     -e | --edit ) vim "$myFILE" ; exit ;;
     -l | --list ) myLIST ; exit ;;
     -p | --loop ) loop "$@" ;;
-    -m | --info ) myanimelist "$@" ; exit ;;
+    -t | --top ) myanimelist -t "$@"; exit ;;
+    -s | --season ) myanimelist -s "$@"; exit ;;
+    info ) myanimelist "$@" ; exit ;;
+    --import) importMyList "$@" ; exit ;;
     -h | --help ) myHelp ; exit ;;
     *) watchAnime "$@" ;;
 esac
