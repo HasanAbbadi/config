@@ -5,10 +5,10 @@ myFILE="$HOME/.cache/watchlist"
 [ ! -f "$myFILE" ] && touch "$myFILE"
 
 myLIST(){
-    printf %35s |tr " " "="
+    printf %80s |tr " " "="
     echo -e "\n"
-    paste <(cut -d '|' -f1 $myFILE) <(cut -d'|' -f2 $myFILE) | awk -v FS='\t' '{printf("%-70s %s\n",$1,$2)}' | awk '{sub(/^/, " ", $0)}1' | sed "0~1 a\ $(printf %32s |tr " " " ") \ "
-    printf %35s |tr " " "="
+    paste <(paste <(cut -d '|' -f1 $myFILE) <(cut -d'|' -f2 $myFILE) | awk -v FS='\t' '{printf("%-60s %s\n",$1,$2)}' | awk '{sub(/^/, " ", $0)}1') <(cut -d '|' -f4 $myFILE) | awk -v FS='\t' '{printf("%-30s %s\n",$1,$2)}' | awk '{sub(/^/, " ", $0)}1' | sed "0~1 a\ $(printf %40s |tr " " " ") \ "
+    printf %80s |tr " " "="
     echo ""
 }
 
@@ -18,7 +18,7 @@ watchAnime(){
     [ -z "$Select" ] && echo "nothing selected." && exit
     else
 
-if [[ -z $1 ]] || [[ "$1" == "--download-dir" ]] || [[ $1 == "--hide-subs" ]]; then
+if [[ -z $1 ]] || [[ "$1" == "--download-dir" ]] || [[ $1 == "--hide-subs" ]] || [[ $1 == "--rewatch" ]]; then
 
         Select=`paste <(grep -i watching $myFILE | cut -d '|' -f 1 ) <(grep -i watching $myFILE | cut -d '|' -f 2,4 | sed 's/^/|/g') | awk -v FS='\t' '{printf("%-45s %s\n",$1,$2)}' | fzy | cut -d '|' -f1 | sed 's/[ \t]*$//'`
     [ -z "$Select" ] && echo "nothing selected." && exit
@@ -28,30 +28,47 @@ if [[ -z $1 ]] || [[ "$1" == "--download-dir" ]] || [[ $1 == "--hide-subs" ]]; t
     myChoice=$(grep "$Select" $myFILE | cut -d '|' -f 3)
 
     if [[ $1 == "--hide-subs" ]]; then
-        screenkey -s medium --font-color black --no-sys --opacity 1 -t 1900 &
+	    if [[ ! -f /bin/screenkey ]] ; then
+		    echo "You need to install screenkey for this to work." && exit
+	    else
+	            screenkey -s medium --font-color black --no-sys --opacity 1 -t 1900 &
+	    fi
+    fi
 
     if [[ $myChoice == "0" ]]; then
         echo -e "PLEASE REMEMBER WHICH NUMBER YOU WILL SELECT RIGHT NOW!"
         sleep 1s
-        echo "playing $Select ep num. $EP"
-        if [[ "$1" == "--download-dir" ]]; then 
+        if [[ "$1" == "--download-dir" ]]; then
             anime dl "$Select" -e "$EP" -p animesuge --download-dir "$2"
         else
-            anime dl "$Select" -e "$EP" -p animesuge --play mpv
+		if [[ $1 == "--rewatch" ]]; then
+           	     echo "playing $Select ep num. $currentEP"
+       		     anime dl "$Select" -e "$currentEP" -p animesuge --play mpv
+		     exit
+    		else
+           	     echo "playing $Select ep num. $EP"
+            	     anime dl "$Select" -e "$EP" -p animesuge --play mpv
         fi
+	fi
         echo "what was the anime number that you selected?"
         read NUMBER
         sed -i "s/^$Select.*/$Select|$currentEP|$NUMBER|Watching/" "$myFILE"
 
     else
-        echo "playing $Select ep num. $EP"
             if [[ "$1" == "--download-dir" ]]; then
+ 		echo "downloading $Select ep num. $EP"
             anime dl "$Select" -e "$EP" -c $myChoice -p animesuge --download-dir "$2"
-            else
+    else
+	    if [[ $1 == "--rewatch" ]]; then
+ 		echo "playing $Select ep num. $currentEP"
+            anime dl "$Select" -e "$currentEP" -c $myChoice -p animesuge --play mpv
+	    exit
+    else
+ 		echo "playing $Select ep num. $EP"
             anime dl "$Select" -e "$EP" -c $myChoice -p animesuge --play mpv
             fi
-fi
-    killall screenkey
+	    fi
+    killall screenkey 2>/dev/null
     fi
 
     echo "mark as watched?"
@@ -99,13 +116,14 @@ mySearch(){
 }
 
 mySeason(){
-    [ -z "$3" ] | [ -z "$4" ] && echo "usage: $(tput setaf 7)aniwatch -i $(tput setaf 3)-s $(tput setaf 2)[season]$(tput setaf 4) [year]"
+    [ -z "$3" ] | [ -z "$4" ] && echo "usage: $(tput setaf 7)aniwatch $(tput setaf 3)info $(tput setaf 2)[season]$(tput setaf 4) [year]"
     curl "https://myanimelist.net/anime/season/"$4"/"$3"" 2>/dev/null | grep "h2_anime_title" | cut -d '>' -f 3 | cut -d '<' -f 1 | awk '{print NR  " " $s}' | sort -V -k1 -r ;
 }
 
 topList(){
-    [ -z "$3" ] && echo "usage: $(tput setaf 7)aniwatch -i $(tput setaf 3)-t $(tput setaf 2)anime$(tput setaf 7)/$(tput setaf 4)manga "
-
+    if [[ -z "$3" ]]; then
+	echo "usage: $(tput setaf 7)aniwatch $(tput setaf 3) info $(tput setaf 2)anime$(tput setaf 7)/$(tput setaf 4)manga " && exit
+    fi
     mySep=$(printf %80s |tr " " "-")
     paste\
         <( (curl "https://myanimelist.net/top$3.php" && curl "https://myanimelist.net/top$3.php?limit=50") 2>/dev/null\
@@ -118,7 +136,7 @@ topList(){
 }
 
 helpMe(){
-        echo " Usage: aniwatch -i <flag> [NAME]
+        echo " Usage: aniwatch info <flag> [STRING]
 
     -h | --help ) displays this help message
     -t | --top ) list of 100 top manga/anime
@@ -126,6 +144,9 @@ helpMe(){
 
 
 myanimelist(){
+	 if [[ -z "$2" ]]; then
+		 echo "what is the name of the anime/manga?" ; exit
+	 fi
     # flags
     case "$2" in
         -s | --season ) mySeason "$@" ; exit ;;
@@ -193,8 +214,8 @@ importMyList(){
     fi
     list_num=$(grep "my_status" $my_xml_list | wc -l )
 
-    (paste -d '|' <(grep "series_title" $my_xml_list | cut -d '[' -f 3 | cut -d ']' -f1) <(grep "my_watched_episodes" $my_xml_list | cut -d '>' -f2 | cut -d '<' -f 1) <( for i in $(seq 1 $list_num);do echo 0; done ) <(grep "my_status" $my_xml_list | cut -d '>' -f2 | cut -d '<' -f 1)) >> $myFILE && echo "Imported Succefully!"
-    
+    (paste -d '|' <(grep "series_title" $my_xml_list | cut -d '[' -f 3 | cut -d ']' -f1) <(grep "my_watched_episodes" $my_xml_list | cut -d '>' -f2 | cut -d '<' -f 1) <( for i in $(seq 1 $list_num);do echo 0; done ) <(grep "my_status" $my_xml_list | cut -d '>' -f2 | cut -d '<' -f 1)) >> $myFILE && echo "Imported Successfully!"
+
     }
 
 myHelp(){
@@ -203,29 +224,35 @@ myHelp(){
     echo -e "\n    -----------------------------------------------------------------------
    |  AniWatch: A script to watch your favourite anime from your terminal. |\n\
    |                                                                       |\n\
-   |  Made by: HasanAbbadi, github: github.com/HasanAbbadi                 |\n\
+   |  Made by: HasanAbbadi, github: www.github.com/HasanAbbadi             |\n\
     -----------------------------------------------------------------------\n\n\tNOTES:\n\n\
         [STRING]='nessecary',\n\t{string}='optional',\n\t(string)='used after the optional string ONLY'.\n\n\
         USAGE:\n\n\
         aniwatch --> watch anime from your list\n\
-        aniwatch [NAME OF ANIME] {number of watched ep} (status ex.'completed') } --> Adds Anime to your list\n\n\
+        aniwatch [NAME OF ANIME] {number of watched ep} (status ex.'completed')  --> Adds Anime to your list\n\n\
         FLAGS:\n\n\
         aniwatch {flag}\n\
-        -e | --edit )       Manually edit your list.\n\
-        -l | --list )       Look at your list, you have shitty taste.\n\
-        -a | --all )        Watch any anime from your list even if flagged as (dropped, completed, etc..)\n\
-        -t | --top )        list of 100 top manga/anime\n\
-        -s | --season )     list of anime in any season any year\n\
-        --import )          import your 'myanimelist' xml list.\n\
-        --download-dir )    specify a directory to download the episode instead of watching it.\n\
-        -p | --loop )       Keep watching anime, such a weeb.\n\
-        -h | --help )       what do you think this does.\n\
-        info )              Scraps 'my Anime List' for info about anime/manga, it has flags too.\n\n\
+        -e | --edit    )    Manually edit your list.\n\
+        -l | --list    )    Look at your list, you have shitty taste.\n\
+        -a | --all     )    Watch any anime from your list even if\n\
+			     flagged as (dropped, completed, etc..)\n\
+        -t | --top     )    List of 100 top manga/anime\n\
+        -s | --season  )    List of anime in any season any year\n\
+        --import       )    Import your 'myanimelist' xml list.\n\
+        --download-dir )    Specify a directory to download the episode\n\
+			     instead of watching it.\n\
+        --rewatch      )    Rewatch the last marked episode.\n\
+	--hide-subs    )    Hide the hardcoded subtitles, well, kind of.\n\
+			     for japanese learners. (needs screenkey installed)
+        -p | --loop    )    Keep watching anime, such a weeb.\n\
+        -h | --help    )    What do you think this does.\n\
+        info )              Scraps 'my Anime List' for info about anime/manga,\n\
+			    it has flags too.\n\n\
         In alternate to the '-t' and '-s' flags, you can use $BOLD aniwatch info$RESET followed by:
         \tYou can always run these without an argument to learn more about the usage.\n\
-        \t-t | --top )      list of 100 top manga/anime\n\
-        \t-s | --season ) list of anime in any season any year\n\
-        \t-h | --help ) help message for the 'info' flag
+        \t-t | --top    )   	List of 100 top manga/anime\n\
+        \t-s | --season ) 	List of anime in any season any year\n\
+        \t-h | --help   )	Help message for the 'info' flag
         "
 }
 
@@ -233,8 +260,8 @@ case "$1" in
     -e | --edit ) vim "$myFILE" ; exit ;;
     -l | --list ) myLIST ; exit ;;
     -p | --loop ) loop "$@" ;;
-    -t | --top ) myanimelist -t "$@"; exit ;;
-    -s | --season ) myanimelist -s "$@"; exit ;;
+    -t | --top ) myanimelist -t "$@" ; exit ;;
+    -s | --season ) myanimelist -s "$@" ; exit ;;
     info ) myanimelist "$@" ; exit ;;
     --import) importMyList "$@" ; exit ;;
     -h | --help ) myHelp ; exit ;;
