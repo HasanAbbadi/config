@@ -1,26 +1,37 @@
 #!/bin/sh
-
+# [ some options ]
 myFILE="$HOME/.cache/watchlist"
 
 [ ! -f "$myFILE" ] && touch "$myFILE"
 
+# [ shows the anime list ]
 myLIST(){
     printf %80s |tr " " "="
     echo -e "\n"
-    paste <(paste <(cut -d '|' -f1 $myFILE) <(cut -d'|' -f2 $myFILE) | awk -v FS='\t' '{printf("%-60s %s\n",$1,$2)}' | awk '{sub(/^/, " ", $0)}1') <(cut -d '|' -f4 $myFILE) | awk -v FS='\t' '{printf("%-30s %s\n",$1,$2)}' | awk '{sub(/^/, " ", $0)}1' | sed "0~1 a\ $(printf %40s |tr " " " ") \ "
+    paste <(paste <(cut -d '|' -f1 $myFILE)\
+	    <(cut -d'|' -f2 $myFILE) | awk -v FS='\t' '{printf("%-60s %s\n",$1,$2)}' | awk '{sub(/^/, " ", $0)}1')\
+	    <(cut -d '|' -f4 $myFILE) | awk -v FS='\t' '{printf("%-30s %s\n",$1,$2)}' |\
+	    awk '{sub(/^/, " ", $0)}1' | sed "0~1 a\ $(printf %40s |tr " " " ") \ "
     printf %80s |tr " " "="
     echo ""
 }
 
+# [ to watch anime ]
 watchAnime(){
     if [[ "$1" == "-a" ]] || [[ "$1" == "--all" ]]; then
-        Select=`paste <(cat $myFILE | cut -d '|' -f 1 ) <(cut -d '|' -f 2,4 $myFILE | sed 's/^/|/g') | awk -v FS='\t' '{printf("%-45s %s\n",$1,$2)}' | fzy | cut -d '|' -f1 | sed 's/[ \t]*$//'`
+        Select=`paste <(cat $myFILE | cut -d '|' -f 1 )\
+		<(cut -d '|' -f 2,4 $myFILE | sed 's/^/|/g') |\
+		awk -v FS='\t' '{printf("%-45s %s\n",$1,$2)}' | fzy | cut -d '|' -f1 | sed 's/[ \t]*$//'`
+
     [ -z "$Select" ] && echo "nothing selected." && exit
     else
 
-if [[ -z $1 ]] || [[ "$1" == "--download-dir" ]] || [[ $1 == "--hide-subs" ]] || [[ $1 == "--rewatch" ]]; then
+if [[ -z $1 ]] || [[ "$1" == "--download" ]] || [[ $1 == "--hide-subs" ]] || [[ $1 == "--rewatch" ]]; then
 
-        Select=`paste <(grep -i watching $myFILE | cut -d '|' -f 1 ) <(grep -i watching $myFILE | cut -d '|' -f 2,4 | sed 's/^/|/g') | awk -v FS='\t' '{printf("%-45s %s\n",$1,$2)}' | fzy | cut -d '|' -f1 | sed 's/[ \t]*$//'`
+        Select=`paste <(grep -i watching $myFILE | cut -d '|' -f 1 )\
+		<(grep -i watching $myFILE | cut -d '|' -f 2,4 | sed 's/^/|/g') |\
+		awk -v FS='\t' '{printf("%-45s %s\n",$1,$2)}' | fzy | cut -d '|' -f1 | sed 's/[ \t]*$//'`
+
     [ -z "$Select" ] && echo "nothing selected." && exit
 
     currentEP=$(grep "$Select" $myFILE | cut -d '|' -f 2)
@@ -38,8 +49,8 @@ if [[ -z $1 ]] || [[ "$1" == "--download-dir" ]] || [[ $1 == "--hide-subs" ]] ||
     if [[ $myChoice == "0" ]]; then
         echo -e "PLEASE REMEMBER WHICH NUMBER YOU WILL SELECT RIGHT NOW!"
         sleep 1s
-        if [[ "$1" == "--download-dir" ]]; then
-            anime dl "$Select" -e "$EP" -p animesuge --download-dir "$2"
+        if [[ "$1" == "--download" ]]; then
+            anime dl "$Select" -e "$EP" -p animesuge --download "$2"
         else
 		if [[ $1 == "--rewatch" ]]; then
            	     echo "playing $Select ep num. $currentEP"
@@ -55,8 +66,8 @@ if [[ -z $1 ]] || [[ "$1" == "--download-dir" ]] || [[ $1 == "--hide-subs" ]] ||
         sed -i "s/^$Select.*/$Select|$currentEP|$NUMBER|Watching/" "$myFILE"
 
     else
-            if [[ "$1" == "--download-dir" ]]; then
- 		echo "downloading $Select ep num. $EP"
+            if [[ "$1" == "--download" ]]; then
+ 	    echo "downloading $Select ep num. $EP"
             anime dl "$Select" -e "$EP" -c $myChoice -p animesuge --download-dir "$2"
     else
 	    if [[ $1 == "--rewatch" ]]; then
@@ -79,25 +90,39 @@ if [[ -z $1 ]] || [[ "$1" == "--download-dir" ]] || [[ $1 == "--hide-subs" ]] ||
         || echo "didn't mark ep num. $EP as watched."
 
 else
-    if [[ -z $3 ]]; then
-        [ -z "$2" ] && echo ""$1"|0|0|watching" >> "$myFILE"\
-            || echo ""$1"|"$2"|0|watching" >> "$myFILE"\
-            && echo "Added Anime to Watchlist!"
-    else
-        [ -z "$2" ] && echo ""$1"|0|0|"$3"" >> "$myFILE"\
-            || echo ""$1"|"$2"|0|"$3"" >> "$myFILE"\
-            && echo "Added Anime to Watchlist!"
-    fi
-fi
-    fi
+	# [ get anime name from myanimelist.net ]
+	animeName(){
+	    (mySearch ""$1" myanimelist") >/dev/null
+
+	    curl $(cat urls | head -n1) 2>/dev/null | grep -A1 "<title>" | tail -n1\
+		    | cut -d '(' -f2 | cut -d ')' -f1
+	    rm urls
+	}
+	anime_name=$(animeName "$1")
+
+	if [[ -z $(grep "$anime_name" $myFILE) ]]; then
+    	if [[ -z $3 ]]; then
+        [ -z "$2" ] && echo "$anime_name|0|0|Watching" >> "$myFILE"\
+            || echo "$anime_name|"$2"|0|Watching" >> "$myFILE"\
+            && echo "Added $anime_name to Watchlist!"
+    	else
+        [ -z "$2" ] && echo "$anime_name|0|0|"$3"" >> "$myFILE"\
+            || echo "$anime_name|"$2"|0|"$3"" >> "$myFILE"\
+            && echo "Added $anime_name to Watchlist!"
+    	fi
+	else
+	echo "$anime_name is Already in List!" ; exit
+	fi fi fi
 }
 
+# [ loop the watchAnime func. ]
 loop(){
     while true; do
     watchAnime
     done
 }
 
+# [ searches google ]
 mySearch(){
     SEARCH=$@
     URL="http://google.com/search?hl=en&safe=off&q="
@@ -115,6 +140,7 @@ mySearch(){
     echo ""
 }
 
+# [ gets seasonal list of anime from myanimelist.net ]
 mySeason(){
     [ -z "$3" ] | [ -z "$4" ] && echo "usage: $(tput setaf 7)aniwatch $(tput setaf 3)info $(tput setaf 2)[season]$(tput setaf 4) [year]"
     curl "https://myanimelist.net/anime/season/"$4"/"$3"" 2>/dev/null | grep "h2_anime_title" | cut -d '>' -f 3 | cut -d '<' -f 1 | awk '{print NR  " " $s}' | sort -V -k1 -r ;
@@ -205,6 +231,11 @@ myanimelist(){
     rm pics
 }
 
+exportMyList(){
+	echo "Coming Soon!"
+	exit
+}
+
 importMyList(){
     if [[ $2 == *.gz ]]; then
         my_xml_list=$(echo "$2" | sed 's/.gz//g' )
@@ -239,7 +270,7 @@ myHelp(){
         -t | --top     )    List of 100 top manga/anime\n\
         -s | --season  )    List of anime in any season any year\n\
         --import       )    Import your 'myanimelist' xml list.\n\
-        --download-dir )    Specify a directory to download the episode\n\
+        --download     )    Specify a directory to download the episode\n\
 			     instead of watching it.\n\
         --rewatch      )    Rewatch the last marked episode.\n\
 	--hide-subs    )    Hide the hardcoded subtitles, well, kind of.\n\
@@ -264,6 +295,7 @@ case "$1" in
     -s | --season ) myanimelist -s "$@" ; exit ;;
     info ) myanimelist "$@" ; exit ;;
     --import) importMyList "$@" ; exit ;;
+    --export) exportMyList ; exit ;;
     -h | --help ) myHelp ; exit ;;
     *) watchAnime "$@" ;;
 esac
