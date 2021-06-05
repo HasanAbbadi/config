@@ -181,7 +181,7 @@ ueberzug_preview(){
 	image_position=`expr $screen_width - 30`
 	ueberzug layer --parser bash 0< <(
 	    declare -Ap add_command=([action]="add" [identifier]="example0" [x]="$image_position" [y]="10" [path]="$1")
-	    sleep 50
+	    sleep 1h
 	    declare -Ap remove_command=([action]="remove" [identifier]="example0")
    )
 }
