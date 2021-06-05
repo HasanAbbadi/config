@@ -5,7 +5,7 @@ myFILE="$HOME/.cache/watchlist"
 [ ! -f "$myFILE" ] && touch "$myFILE"
 
 # [ shows the anime list ]
-myLIST(){
+my_list(){
     printf %80s |tr " " "="
     echo -e "\n"
     paste <(paste <(cut -d '|' -f1 $myFILE)\
@@ -17,7 +17,7 @@ myLIST(){
 }
 
 # [ to watch anime ]
-watchAnime(){
+watch_anime(){
     if [[ "$1" == "-a" ]] || [[ "$1" == "--all" ]]; then
         Select=`paste <(cat $myFILE | cut -d '|' -f 1 )\
 		<(cut -d '|' -f 2,4 $myFILE | sed 's/^/|/g') |\
@@ -92,7 +92,7 @@ if [[ -z $1 ]] || [[ "$1" == "--download" ]] || [[ $1 == "--hide-subs" ]] || [[ 
 else
 	# [ get anime name from myanimelist.net ]
 	animeName(){
-	    (mySearch ""$1" myanimelist") >/dev/null
+	    (go_search ""$1" myanimelist") >/dev/null
 
 	    curl $(cat urls | head -n1) 2>/dev/null | grep -A1 "<title>" | tail -n1\
 		    | cut -d '(' -f2 | cut -d ')' -f1
@@ -115,15 +115,15 @@ else
 	fi fi fi
 }
 
-# [ loop the watchAnime func. ]
+# [ loop the watch_anime func. ]
 loop(){
     while true; do
-    watchAnime
+    watch_anime
     done
 }
 
 # [ searches google ]
-mySearch(){
+go_search(){
     SEARCH=$@
     URL="http://google.com/search?hl=en&safe=off&q="
     STRING=`echo $SEARCH | sed 's/ /+/g'`
@@ -141,12 +141,12 @@ mySearch(){
 }
 
 # [ gets seasonal list of anime from myanimelist.net ]
-mySeason(){
+my_season(){
     [ -z "$3" ] | [ -z "$4" ] && echo "usage: $(tput setaf 7)aniwatch $(tput setaf 3)info $(tput setaf 2)[season]$(tput setaf 4) [year]"
     curl "https://myanimelist.net/anime/season/"$4"/"$3"" 2>/dev/null | grep "h2_anime_title" | cut -d '>' -f 3 | cut -d '<' -f 1 | awk '{print NR  " " $s}' | sort -V -k1 -r ;
 }
 
-topList(){
+top_list(){
     if [[ -z "$3" ]]; then
 	echo "usage: $(tput setaf 7)aniwatch $(tput setaf 3) info $(tput setaf 2)anime$(tput setaf 7)/$(tput setaf 4)manga " && exit
     fi
@@ -161,27 +161,45 @@ topList(){
         | awk -v FS='\t' '{printf("%-75s %s\n",$1,$2)}' | awk '{sub(/^/, " ", $0)}1' | sed "0~1 a\ $mySep \ "
 }
 
-helpMe(){
+users_reviews(){
+	echo "Soon." ; exit
+    (go_search ""$@" myanimelist") >/dev/null
+
+    (curl $(cat urls | head -n1 ) > raw.html ) 2>/dev/null
+}
+
+help_info(){
         echo " Usage: aniwatch info <flag> [STRING]
 
     -h | --help ) displays this help message
     -t | --top ) list of 100 top manga/anime
     -s | --season ) list of anime in any season any year"; }
 
+# [ cover photo preview with ueberzug ]
+ueberzug_preview(){
+	screen_width=$(echo $COLUMNS)
+	image_position=`expr $screen_width - 30`
+	ueberzug layer --parser bash 0< <(
+	    declare -Ap add_command=([action]="add" [identifier]="example0" [x]="$image_position" [y]="10" [path]="$1")
+	    sleep 50
+	    declare -Ap remove_command=([action]="remove" [identifier]="example0")
+   )
+}
 
+# [ the info flag ]
 myanimelist(){
 	 if [[ -z "$2" ]]; then
 		 echo "what is the name of the anime/manga?" ; exit
 	 fi
     # flags
     case "$2" in
-        -s | --season ) mySeason "$@" ; exit ;;
-        -t | --top ) topList "$@" ; exit ;;
-        -h | --help ) helpMe ; exit ;;
+        -s | --season ) my_season "$@" ; exit ;;
+        -t | --top ) top_list "$@" ; exit ;;
+        -h | --help ) help_info ; exit ;;
     esac
 
     # bts
-    (mySearch ""$@" myanimelist") >/dev/null
+    (go_search ""$@" myanimelist") >/dev/null
 
     (curl $(cat urls | head -n1 ) | html2text > raw.txt ) 2>/dev/null
 
@@ -201,11 +219,11 @@ myanimelist(){
     else
         (curl $(cat page.txt | grep -i "pictures" | cut -d '(' -f 2 | sed 's/)//') | html2text > pics) 2>/dev/null
     fi
-    (curl $(cat pics | grep -i "jpg" | cut -d '(' -f 2 | cut -d ' ' -f1 | sed 1d | head -n1) | imv - &) 2>/dev/null
+    (wget -O cover.png $(cat pics | grep -i "jpg" | cut -d '(' -f 2 | cut -d ' ' -f1 | sed 1d | head -n1)) 2>/dev/null
 
 
     # output
-    echo -e "$(tput setaf 2)---------------------------------------"
+    (echo -e "$(tput setaf 2)---------------------------------------"
 
     echo -e "Title:$(grep -iF "ALternative Titles" -A 2 page.txt | tail -n2 | sed 's/English://g')"
     echo -e "$(tput setaf 3)\b"
@@ -219,24 +237,25 @@ myanimelist(){
 
     echo "Synopsis:"
     echo -e "$(tput setaf 7)\b"
-    awk -v RS='' "/$myWord/" page.txt
+    awk -v RS='' "/$myWord/" page.txt | fold -w `expr $(echo $COLUMNS) - 50`
 
     echo -e "$(tput setaf 2)---------------------------------------"
     echo -e "$(tput setaf 6)"
 
     grep -iF "information" -A 30 page.txt | grep -iv "produc" | sed -n "/Serialization/q;p" | sed -n "/--/q;p"| sed "s/([^)]*)//g" | sed 1,2d | cat -s
     echo -e "$(tput setaf 2)---------------------------------------"
-
+    ) | bat & ueberzug_preview cover.png & sleep 5 && while true; do ! pgrep -x bat > /dev/null && killall ueberzug && exit; done
     rm page.txt
     rm pics
+    rm cover.png
 }
 
-exportMyList(){
-	echo "Coming Soon!"
+export_my_list(){
+	echo "Soon!"
 	exit
 }
 
-importMyList(){
+import_my_list(){
     if [[ $2 == *.gz ]]; then
         my_xml_list=$(echo "$2" | sed 's/.gz//g' )
         gzip -d "$2"
@@ -249,7 +268,7 @@ importMyList(){
 
     }
 
-myHelp(){
+help_message(){
     MOVE_UP=`tput cuu 1` ; CLEAR_LINE=`tput el 1` ; BOLD=`tput bold` ; UNDERLINE=`tput smul` ; RESET=`tput sgr0`
 
     echo -e "\n    -----------------------------------------------------------------------
@@ -269,14 +288,13 @@ myHelp(){
 			     flagged as (dropped, completed, etc..)\n\
         -t | --top     )    List of 100 top manga/anime\n\
         -s | --season  )    List of anime in any season any year\n\
+        -p | --loop    )    Keep watching anime, such a weeb.\n\
+        -h | --help    )    What do you think this does.\n\
         --import       )    Import your 'myanimelist' xml list.\n\
-        --download     )    Specify a directory to download the episode\n\
-			     instead of watching it.\n\
+        --download     )    Specify a directory to download the episode.\n\
         --rewatch      )    Rewatch the last marked episode.\n\
 	--hide-subs    )    Hide the hardcoded subtitles, well, kind of.\n\
 			     for japanese learners. (needs screenkey installed)
-        -p | --loop    )    Keep watching anime, such a weeb.\n\
-        -h | --help    )    What do you think this does.\n\
         info )              Scraps 'my Anime List' for info about anime/manga,\n\
 			    it has flags too.\n\n\
         In alternate to the '-t' and '-s' flags, you can use $BOLD aniwatch info$RESET followed by:
@@ -289,13 +307,14 @@ myHelp(){
 
 case "$1" in
     -e | --edit ) vim "$myFILE" ; exit ;;
-    -l | --list ) myLIST ; exit ;;
+    -l | --list ) my_list ; exit ;;
     -p | --loop ) loop "$@" ;;
     -t | --top ) myanimelist -t "$@" ; exit ;;
     -s | --season ) myanimelist -s "$@" ; exit ;;
     info ) myanimelist "$@" ; exit ;;
-    --import) importMyList "$@" ; exit ;;
-    --export) exportMyList ; exit ;;
-    -h | --help ) myHelp ; exit ;;
-    *) watchAnime "$@" ;;
+    --import) import_my_list "$@" ; exit ;;
+    --export) export_my_list ; exit ;;
+    --reviews ) users_reviews "$@" ; exit ;;
+    -h | --help ) help_message ; exit ;;
+    *) watch_anime"$@" ;;
 esac
