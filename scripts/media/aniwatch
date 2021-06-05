@@ -95,7 +95,7 @@ else
 	    (go_search ""$1" myanimelist") >/dev/null
 
 	    curl $(cat urls | head -n1) 2>/dev/null | grep -A1 "<title>" | tail -n1\
-		    | cut -d '(' -f2 | cut -d ')' -f1
+		    | cut -d '(' -f2 | cut -d ')' -f1 | cut -d '-' -f1
 	    rm urls
 	}
 	anime_name=$(animeName "$1")
@@ -178,7 +178,11 @@ help_info(){
 # [ cover photo preview with ueberzug ]
 ueberzug_preview(){
 	screen_width=$(echo $COLUMNS)
+	if [[ $screen_width -lt 92 ]]; then
+	image_position=`expr $screen_width - 20`
+	else
 	image_position=`expr $screen_width - 30`
+	fi
 	ueberzug layer --parser bash 0< <(
 	    declare -Ap add_command=([action]="add" [identifier]="example0" [x]="$image_position" [y]="10" [path]="$1")
 	    sleep 1h
@@ -207,8 +211,6 @@ myanimelist(){
 
     sed -n '/More\ reviews/q;p' raw.txt > page.txt
 
-    rm raw.txt
-
     myWord="$(cat page.txt | grep 'Synopsis' -A 2 | tail -n1 | cut -d ' ' -f 1-6)"
 
     # cover photo
@@ -225,7 +227,8 @@ myanimelist(){
     # output
     (echo -e "$(tput setaf 2)---------------------------------------"
 
-    echo -e "Title:$(grep -iF "ALternative Titles" -A 2 page.txt | tail -n2 | sed 's/English://g')"
+    Title=$(grep -iF "ALternative Titles" -A 2 page.txt | tail -n1 | sed 's/English://g')
+    echo -e "Title:$Title"
     echo -e "$(tput setaf 3)\b"
 
     grep -iF "score:" page.txt | tail -n1
@@ -237,22 +240,98 @@ myanimelist(){
 
     echo "Synopsis:"
     echo -e "$(tput setaf 7)\b"
-    awk -v RS='' "/$myWord/" page.txt | fold -w `expr $(echo $COLUMNS) - 50`
+    awk -v RS='' "/$myWord/" page.txt | fold -w `expr $(echo $COLUMNS) - 30`
 
     echo -e "$(tput setaf 2)---------------------------------------"
     echo -e "$(tput setaf 6)"
 
     grep -iF "information" -A 30 page.txt | grep -iv "produc" | sed -n "/Serialization/q;p" | sed -n "/--/q;p"| sed "s/([^)]*)//g" | sed 1,2d | cat -s
     echo -e "$(tput setaf 2)---------------------------------------"
-    ) | bat & ueberzug_preview cover.png & sleep 5 && while true; do ! pgrep -x bat > /dev/null && killall ueberzug && exit; done
-    rm page.txt
-    rm pics
-    rm cover.png
+
+    echo -e "$(tput setaf 7)"
+    grep -F '## Reviews' -A 400 raw.txt | grep -v '^|' | grep -Fv '[' | grep -Fv ']' | sed -e '/^Sort/,+7d' | cat -s | fold -w `expr $(echo $COLUMNS) - 30`
+    echo -e "$(tput setaf 2)---------------------------------------"
+
+# [ Final Look ]
+    ) | bat --file-name "$Title" & ueberzug_preview cover.png & sleep 5 && while true; do ! pgrep -x bat > /dev/null && killall ueberzug &&\
+    rm page.txt &&\
+    rm raw.txt &&\
+    rm pics &&\
+    rm cover.png &&\
+    exit; done
 }
 
+# [ --export flag ]
 export_my_list(){
-	echo "Soon!"
-	exit
+	myFILE="$XDG_CACHE_HOME/watchlist"
+	lines_num=$(cat $myFILE | wc -l )
+	info=0
+	touch exported_list.xml
+	echo "What is your MyAnimeList username?"
+	read user_name
+	echo "
+	<myanimelist>
+
+				<myinfo>
+					<user_id></user_id>
+					<user_name>$user_name</user_name>
+					<user_export_type>1</user_export_type>
+					<user_total_anime>$lines_num</user_total_anime>
+					<user_total_watching>$(grep -i watching $myFILE|wc -l)</user_total_watching>
+					<user_total_completed>$(grep -i complet $myFILE|wc -l)</user_total_completed>
+					<user_total_onhold>$(grep -i hold $myFILE|wc -l)</user_total_onhold>
+					<user_total_dropped>$(grep -i drop $myFILE|wc -l)</user_total_dropped>
+					<user_total_plantowatch>$(grep -i plan $myFILE|wc -l)</user_total_plantowatch>
+				</myinfo>
+	" >> exported_list.xml
+	echo "Please be patient, this will take a few minutes."
+	for info in $(seq 1 $lines_num); do
+		echo "Exporting $name Info!"
+		info=$(($info+1))
+		name=$(cut -d '|' -f1 $myFILE | head -n$info | tail -n1)
+		watched=$(cut -d '|' -f2 $myFILE | head -n$info | tail -n1)
+		my_status=$(cut -d '|' -f4 $myFILE | head -n$info | tail -n1)
+		go_search "$name myanimelist" >/dev/null
+		wget -O html "$(head -n1 urls)" 2>/dev/null
+		id=$(head -n1 urls | cut -d '/' -f5)
+		a_type=$(grep -A1 "Type:" html | tail -n1 | cut -d '>' -f2 | cut -d '<' -f1)
+		a_eps=$(grep -F -A1 '<span class="dark_text">Episodes:</span>' html |\
+			tail -n1 | sed 's/^\ *//' | sed 's/[^0-9]*//g' )
+		echo "
+						<anime>
+						<series_animedb_id>$id</series_animedb_id>
+						<series_title><![CDATA[$name]]></series_title>
+						<series_type>$a_type</series_type>
+						<series_episodes>$a_eps</series_episodes>
+						<my_id>0</my_id>
+						<my_watched_episodes>$watched</my_watched_episodes>
+						<my_start_date>0000-00-00</my_start_date>
+						<my_finish_date>0000-00-00</my_finish_date>
+						<my_rated></my_rated>
+						<my_score>0</my_score>
+						<my_storage></my_storage>
+						<my_storage_value>0.00</my_storage_value>
+						<my_status>$my_status</my_status>
+						<my_comments><![CDATA[]]></my_comments>
+						<my_times_watched>0</my_times_watched>
+						<my_rewatch_value></my_rewatch_value>
+						<my_priority>LOW</my_priority>
+						<my_tags><![CDATA[]]></my_tags>
+						<my_rewatching>0</my_rewatching>
+						<my_rewatching_ep>0</my_rewatching_ep>
+						<my_discuss>0</my_discuss>
+						<my_sns>default</my_sns>
+						<update_on_import>1</update_on_import>
+					</anime>
+	" >> exported_list.xml
+
+		rm html
+		rm urls
+	done
+	echo "
+				</myanimelist>" >> exported_list.xml
+	echo "Done."
+	echo "Exported $lines_num Shows."
 }
 
 import_my_list(){
@@ -291,6 +370,7 @@ help_message(){
         -p | --loop    )    Keep watching anime, such a weeb.\n\
         -h | --help    )    What do you think this does.\n\
         --import       )    Import your 'myanimelist' xml list.\n\
+	--export       )    export your list to an xml file (still under testing).\n\
         --download     )    Specify a directory to download the episode.\n\
         --rewatch      )    Rewatch the last marked episode.\n\
 	--hide-subs    )    Hide the hardcoded subtitles, well, kind of.\n\
@@ -316,5 +396,5 @@ case "$1" in
     --export) export_my_list ; exit ;;
     --reviews ) users_reviews "$@" ; exit ;;
     -h | --help ) help_message ; exit ;;
-    *) watch_anime"$@" ;;
+    *) watch_anime "$@" ;;
 esac
