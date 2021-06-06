@@ -6,14 +6,16 @@ myFILE="$HOME/.cache/watchlist"
 
 # [ shows the anime list ]
 my_list(){
+	sorted=$( (grep -i drop $myFILE && grep -i complet $myFILE && grep -i plan $myFILE && grep -i watching $myFILE) > tmp.tmp )
     printf %80s |tr " " "="
     echo -e "\n"
-    paste <(paste <(cut -d '|' -f1 $myFILE)\
-	    <(cut -d'|' -f2 $myFILE) | awk -v FS='\t' '{printf("%-60s %s\n",$1,$2)}' | awk '{sub(/^/, " ", $0)}1')\
-	    <(cut -d '|' -f4 $myFILE) | awk -v FS='\t' '{printf("%-30s %s\n",$1,$2)}' |\
+    paste <(paste <( cut -d '|' -f1 tmp.tmp )\
+	    <( cut -d'|' -f2 tmp.tmp ) | awk -v FS='\t' '{printf("%-60s %s\n",$1,$2)}' | awk '{sub(/^/, " ", $0)}1')\
+	    <( cut -d'|' -f4 tmp.tmp ) | awk -v FS='\t' '{printf("%-70s %s\n",$1,$2)}' |\
 	    awk '{sub(/^/, " ", $0)}1' | sed "0~1 a\ $(printf %40s |tr " " " ") \ "
     printf %80s |tr " " "="
     echo ""
+    rm tmp.tmp
 }
 
 # [ to watch anime ]
@@ -86,8 +88,8 @@ if [[ -z $1 ]] || [[ "$1" == "--download" ]] || [[ $1 == "--hide-subs" ]] || [[ 
     read MARK
     [ $MARK == y ] || [ -z $MARK ] &&\
         sed -i "s/^$Select|$currentEP/$Select|$EP/" "$myFILE"\
-        && echo "marked ep num. $EP as watched!" \
-        || echo "didn't mark ep num. $EP as watched."
+        && echo "marked ep num. $EP as watched!" ; exit \
+        || echo "didn't mark ep num. $EP as watched."; exit
 
 else
 	# [ get anime name from myanimelist.net ]
@@ -190,19 +192,20 @@ ueberzug_preview(){
    )
 }
 
-# [ Cleaning up if script got canceled while running ]
-__cleanup(){
-	rm urls 2>/dev/null
-	rm raw.txt 2>/dev/null
-	rm page.txt 2>/dev/null
-	rm pics 2>/dev/null
-	rm cover.png 2>/dev/null
-}
-
-trap __cleanup EXIT
-
 # [ the info flag ]
 myanimelist(){
+
+	# [ Cleaning up if script got canceled while running ]
+	__cleanup(){
+		rm urls 2>/dev/null
+		rm raw.txt 2>/dev/null
+		rm page.txt 2>/dev/null
+		rm pics 2>/dev/null
+		rm cover.png 2>/dev/null
+	}
+
+	trap __cleanup EXIT
+
 	 if [[ -z "$2" ]]; then
 		 echo "what is the name of the anime/manga?" ; exit
 	 fi
@@ -272,16 +275,17 @@ myanimelist(){
     exit; done
 }
 
-# [ cleaning up ]
-__cleanup2(){
-	rm html 2>/dev/null
-	rm urls 2>/dev/null
-}
-
-trap __cleanup2 EXIT
-
 # [ --export flag ]
 export_my_list(){
+
+	# [ cleaning up ]
+	__cleanup2(){
+		rm html 2>/dev/null
+		rm urls 2>/dev/null
+	}
+
+	trap __cleanup2 EXIT
+
 	# [ User Info ]
 	myFILE="$XDG_CACHE_HOME/watchlist"
 	lines_num=$(cat $myFILE | wc -l )
