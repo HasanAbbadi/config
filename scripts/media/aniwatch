@@ -86,10 +86,12 @@ if [[ -z $1 ]] || [[ "$1" == "--download" ]] || [[ $1 == "--hide-subs" ]] || [[ 
 
     echo "mark as watched?"
     read MARK
-    [ $MARK == y ] || [ -z $MARK ] &&\
-        sed -i "s/^$Select|$currentEP/$Select|$EP/" "$myFILE"\
-        && echo "marked ep num. $EP as watched!" ; exit \
-        || echo "didn't mark ep num. $EP as watched."; exit
+    if [[ $MARK == y* ]] || [ -z $MARK ]; then
+        sed -i "s/^$Select|$currentEP/$Select|$EP/" "$myFILE"
+        echo "marked ep num. $EP as watched!" ; exit
+    else
+        echo "didn't mark ep num. $EP as watched."; exit
+    fi
 
 else
 	# [ get anime name from myanimelist.net ]
