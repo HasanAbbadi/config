@@ -29,7 +29,7 @@ while true;do
 		echo "quitting..." && exit
 	fi
 
-	(cat --number <<< $(cat yarn.tmp | pup 'a' | grep 'yarn-clip' | cut -d '"' -f2 | sed 's+^+https://yarn.co+g')) > links.tmp
+	(cat --number <<< $(cat yarn.tmp | pup 'a' | grep 'yarn-clip' | paste - - | cut -d '"' -f2 | sed 's+^+https://yarn.co+g')) > links.tmp
 
 	my_CHOICE=$(grep "^[[:space:]]*$CHOICE[[:space:]]" links.tmp)
 	__CHOICE=$(echo $my_CHOICE | sed 's/^[0-9]*[[:space:]]//g')
