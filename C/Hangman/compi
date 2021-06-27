@@ -1,0 +1,4 @@
+#!/bin/sh
+if find -name *.c; then
+	find -name *.c | entr -n gcc $1
+fi
