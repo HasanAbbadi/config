@@ -19,9 +19,9 @@ for item in sys.argv:
         chap_num = int(chap_num)
         chap_num = chap_num - 1
 
-    if is_option == True:
+    if is_option == True and is_py == False:
         my_option = 1
-    if is_option == False and is_dir == True:
+    if is_option == False and is_dir == True and is_py == False:
         mydir = item 
 
 
