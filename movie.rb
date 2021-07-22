@@ -202,7 +202,7 @@ CLI::UI::Spinner.spin('Playing in mpv...') do
   system "mpv '#{link}'"
 end
 
+#-- ✔️  TV Series-
 #TODO All the Other servers
-#TODO TV Series
-#TODO word? character? wrap
+#TODO word? character? wrap for synopsis
 #TODO check if one can change the quality
