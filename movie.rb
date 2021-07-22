@@ -17,34 +17,45 @@ titles_dict = {}
 links_dict = {}
 
 CLI::UI::Spinner.spin('Fetching...') do |spinner|
-  url = URI.open(search_url)
+  url = URI.open("#{search_url}")
   response = Nokogiri::HTML(url)
   num = 0
   response.css("div.title").each do |title|
     titles_dict[num] = title.text.strip
-    num += 1
+    num += 2
   end
   
-  num = 0
+  num = 1
   links = response.css("div > a").each do |link|
-    links_dict[num] = link['href']
-    num += 1
+    titles_dict[num] = link['href']
+    num += 2
   end
 end
 
-mydict = {}
+mything = ""
+
 i = 0
 CLI::UI::Prompt.ask('Pick a movie/show:') do |handler|
   while i < titles_dict.length
-    handler.option("#{titles_dict[i]}") {|selection| mydict[i] = links_dict[i - 1]}
-    i += 1
+    handler.option("#{titles_dict[i]}") {|selection| mything = titles_dict.values.select {|x| x.include? selection }}
+    i += 2
   end
 end
 
-url = URI.open("#{mydict.values[0]}")
+myKey = ""
+
+titles_dict.each do |key, value|
+  if value == mything[0] then
+    myKey = key
+  end
+end
+
+myUrl = titles_dict[myKey + 3]
+
+url = URI.open("#{myUrl}")
 response = Nokogiri::HTML(url)
 myTitle =  response.css("body > div.streamHeaderInner.py-5 > div > div > div.col-xl-10 > div.title.h1.m-0").text
-myRating = response.css("body > div.streamHeaderInner.py-5 > div > div > div.col-xl-10 > div.supSpan.mt-2 > span:nth-child(5)").text
+myRating = response.css("body > div.streamHeaderInner.py-5 > div > div > div.col-xl-10 > div.supSpan.mt-2 > span").text
 myCategory = response.css("body > div.streamHeaderInner.py-5 > div > div > div.col-xl-10 > div.supSpan.mt-2 > span:nth-child(1) > a").text
 mySynopsis = response.css("body > div.streamHeaderInner.py-5 > div > div > div.col-xl-10 > div.streamDesc.mt-2 > p").text.strip
 
@@ -52,6 +63,87 @@ CLI::UI::Frame.open("#{myCategory}", frame_style: :box, timing: false) do
   CLI::UI::Frame.open('Title:', color: :green, timing: false) {puts "#{myTitle}"}
   CLI::UI::Frame.open('Rating:', color: :yellow, timing: false) {puts "#{myRating} / 10"}
   CLI::UI::Frame.open('Synopsis:', color: :magenta, timing: false) {puts "#{mySynopsis}"}
+end
+
+myEp = {}
+i = 0
+
+seasons = {}
+CLI::UI::Spinner.spin('Fetching...') do |spinner|
+  num = 0
+  response.css(".quality").each do |title|
+    seasons[num] = title.text.strip
+    num += 2
+  end
+  
+  num = 1
+  links = response.css("#allBlocks > div > div > a").each do |link|
+    seasons[num] = link['href']
+    num += 2
+  end
+end
+
+mything = ""
+myKey = ""
+
+if myUrl.include? "series" then
+  main_title = response.css(".h4").text
+  CLI::UI::Frame.open("#{main_title}", color: :green, timing:false) {
+    i = 0
+    CLI::UI::Prompt.ask('Pick a season:') do |handler|
+      while i < seasons.length
+        handler.option("#{seasons[i]}") {|selection| mything = seasons.values.select {|x| x.include? selection }}
+        i += 2
+      end
+    end
+  
+  seasons.each do |key, value|
+    if value == mything[0] then
+      myKey = key
+    end
+  end
+  
+    }
+end
+
+season = myUrl
+if myUrl.include? "series" then season = seasons[myKey.to_i + 1] end
+
+url = URI.open("#{season}")
+response = Nokogiri::HTML(url)
+
+if season.include? "season" then
+  i = 0
+  response.css(".quality").each do |ep|
+    myEp[i] = ep.text.strip
+    i += 2
+  end
+  i = 1
+  response.css("#allBlocks > div > div > a").each do |link|
+    myEp[i] = link['href']
+    i += 2
+  end
+
+  i = 0
+  main_title = response.css(".h4").text
+  CLI::UI::Frame.open("#{main_title}", color: :cyan, timing:false) {
+    CLI::UI::Prompt.ask("Pick an episode") do |handler|
+      while i < myEp.length 
+        handler.option("#{myEp[i]}") {|selection| mything = myEp.values.select {|x| x.include? selection }}
+        i += 2
+      end
+    end
+
+    myEp.each do |key, value|
+      if value == mything[0] then
+        myKey = key
+      end
+    end
+    epURL = myEp[myKey + 1]
+
+    url = URI.open("#{epURL}")
+    response = Nokogiri::HTML(url)
+  }
 end
 
 myServers_dict = {}
@@ -101,9 +193,16 @@ if myServer.include? "youdbox"
     browser.close
   end
   ending = Process.clock_gettime(Process::CLOCK_MONOTONIC)
-  puts "#{(ending - starting).to_s[0..2]}s Elapsed!"
+  puts "#{(ending - starting).to_s[0..4]}s Elapsed!"
+else
+  puts "#{myServer}"
 end
 
 CLI::UI::Spinner.spin('Playing in mpv...') do
   system "mpv '#{link}'"
 end
+
+#TODO All the Other servers
+#TODO TV Series
+#TODO word? character? wrap
+#TODO check if one can change the quality
